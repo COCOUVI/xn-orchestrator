@@ -1,24 +1,26 @@
 {
-    "name": ":vendor_slug/:package_slug",
-    "description": ":package_description",
+    "name": "cocouvi/xn-orchestrator",
+    "description": "Installs and configures Laravel packages from a community-driven catalog",
     "keywords": [
-        ":vendor_name",
+        "COCOUVI",
         "laravel",
-        ":package_slug"
+        "xn-orchestrator"
     ],
-    "homepage": "https://github.com/:vendor_slug/:package_slug",
+    "homepage": "https://github.com/cocouvi/xn-orchestrator",
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": "author@domain.com",
+            "name": "COCOUVI",
+            "email": "cocouvialexandro74@gmail.com",
             "role": "Developer"
         }
     ],
     "require": {
         "php": "^8.4",
         "spatie/laravel-package-tools": "^1.16",
-        "illuminate/contracts": "^11.0||^12.0||^13.0"
+        "illuminate/contracts": "^11.0||^12.0||^13.0",
+        "laravel/prompts": "^0.3.22",
+        "symfony/process": "^7.0||^8.0"
     },
     "require-dev": {
         "laravel/pint": "^1.14",
@@ -35,13 +37,12 @@
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src/",
-            "VendorName\\Skeleton\\Database\\Factories\\": "database/factories/"
+            "Xn\\Orchestrator\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests/",
+            "Xn\\Orchestrator\\Tests\\": "tests/",
             "Workbench\\App\\": "workbench/app/"
         }
     },
@@ -63,11 +64,8 @@
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
-            ],
-            "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
-            }
+                "Xn\\Orchestrator\\OrchestratorServiceProvider"
+            ]
         }
     },
     "minimum-stability": "dev",

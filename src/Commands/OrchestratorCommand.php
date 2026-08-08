@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace Xn\Orchestrator\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class OrchestratorCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'xn-orchestrator';
 
     public $description = 'My command';
 
