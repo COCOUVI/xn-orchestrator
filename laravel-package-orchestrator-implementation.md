@@ -3,13 +3,16 @@
 > Ordre de développement, dépendances & détail technique
 > Base : spatie/package-skeleton-laravel
 
+> **⚠️ Contrainte de langue : toute la CLI doit être 100% en anglais.**
+> Tous les libellés de prompts (`select()`, `multiselect()`, `search()`, `confirm()`), messages de succès/échec, noms de catégories, et sorties de la commande doivent être écrits en anglais dès leur première implémentation (Feature 4 et suivantes). Ce document de roadmap reste en français car c'est un document de travail interne, mais aucun texte français ne doit apparaître dans le code ou les strings affichées à l'utilisateur final. Les fiches YAML du catalogue (Feature 9) doivent aussi utiliser des noms de catégories en anglais (`Authentication`, `Admin Panels`, `Database`, `Debugging`, etc.) pour rester cohérentes.
+
 ---
 
 ## Vue d'ensemble des dépendances
 
 | #  | Feature                                      | Dépend de | Priorité |
 | -- | --------------------------------------------- | --------- | -------- |
-| 1  | PackageOrchestrator setup                         | —         | Haute    |
+| 1  | PackageSkeleton setup                         | —         | Haute    |
 | 2  | PackageCatalog (statique PHP)                 | 1         | Haute    |
 | 3  | ProcessRunner                                 | 1         | Haute    |
 | 4  | InstallCommand (sélection simple)             | 2 + 3     | Haute    |
@@ -25,7 +28,7 @@
 
 ---
 
-## Feature 1 — PackageOrchestrator setup
+## Feature 1 — PackageSkeleton setup
 
 **Sprint 1 | Statut : À faire | Dépend de : Aucune**
 
@@ -37,12 +40,12 @@ Initialiser le repo depuis spatie/package-skeleton-laravel et le rendre installa
 
 | Étape | Détail |
 | --- | --- |
-| 1. Générer le repo | `Use this template` sur GitHub ou script d'init du xn-orchestrator Spatie. |
+| 1. Générer le repo | `Use this template` sur GitHub ou script d'init du skeleton Spatie. |
 | 2. Renommer | Namespace PHP, nom du Service Provider, `vendor/nom-package` dans `composer.json`. |
-| 3. Nettoyer les stubs | Supprimer config/migrations/tests factices générés par défaut par le xn-orchestrator. |
+| 3. Nettoyer les stubs | Supprimer config/migrations/tests factices générés par défaut par le skeleton. |
 | 4. Ajouter les dépendances | `composer require laravel/prompts` + `composer require symfony/process` (déjà transitive de Laravel en général, à vérifier). |
-| 5. Vérifier Testbench | S'assurer que `Orchestra\Testbench` (inclus par le xn-orchestrator) charge bien le Service Provider dans les tests Pest. |
-| 6. Premier commit + CI | Le xn-orchestrator fournit déjà Pest + Pint + Larastan en GitHub Actions — ne pas les désactiver. |
+| 5. Vérifier Testbench | S'assurer que `Orchestra\Testbench` (inclus par le skeleton) charge bien le Service Provider dans les tests Pest. |
+| 6. Premier commit + CI | Le skeleton fournit déjà Pest + Pint + Larastan en GitHub Actions — ne pas les désactiver. |
 
 ### Commande de vérification
 
@@ -140,7 +143,7 @@ Première commande Artisan fonctionnelle : liste plate, sélection d'**un** pack
 | --- | --- |
 | 1. Déclarer la commande | `src/Commands/InstallCommand.php extends Command`, signature `x:install`. |
 | 2. Menu plat | `Laravel\Prompts\select()` listant `CatalogRepositoryInterface::getAll()` par nom. |
-| 3. Récap avant exécution | Afficher la liste des `installSteps` du package choisi, puis `confirm('Confirmer l'installation ?')`. |
+| 3. Récap avant exécution | Afficher la liste des `installSteps` du package choisi, puis `confirm('Proceed with installation?')` (texte anglais, cf. contrainte de langue en tête de document). |
 | 4. Exécution séquentielle | Boucler sur `installSteps`, appeler `ProcessRunner::run()` pour chacune, afficher `✓`/`✗` par étape. |
 | 5. Gestion d'échec | Si une étape échoue → arrêter la boucle, afficher clairement quelle étape a échoué et pourquoi (pas de `"No items have been installed"` vague comme EzWizard). |
 
