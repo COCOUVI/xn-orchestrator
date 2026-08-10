@@ -6,7 +6,7 @@ use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Xn\Orchestrator\Catalog\CatalogRepositoryInterface;
 use Xn\Orchestrator\Catalog\StaticCatalog;
-use Xn\Orchestrator\Commands\OrchestratorCommand;
+use Xn\Orchestrator\Commands\InstallCommand;
 
 class OrchestratorServiceProvider extends PackageServiceProvider
 {
@@ -14,7 +14,7 @@ class OrchestratorServiceProvider extends PackageServiceProvider
     {
         $package
             ->name('xn-orchestrator')
-            ->hasCommand(OrchestratorCommand::class);
+            ->hasCommand(InstallCommand::class);
     }
 
     public function registeringPackage(): void

@@ -7,8 +7,8 @@ it('registers the service provider in the container', function () {
         ->toBeInstanceOf(OrchestratorServiceProvider::class);
 });
 
-it('registers the package command', function () {
-    $this->artisan('xn-orchestrator')
-        ->expectsOutputToContain('All done')
+it('registers the install command', function () {
+    $this->artisan('list')
+        ->expectsOutputToContain('x:install')
         ->assertExitCode(0);
 });
