@@ -6,3 +6,5 @@ parameters:
     paths:
         - src
     tmpDir: build/phpstan
+    scanFiles:
+        - vendor/laravel/prompts/src/helpers.php
