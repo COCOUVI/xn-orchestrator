@@ -36,7 +36,7 @@ it('throws a PackageInstallationException with raw output from runOrThrow()', fu
 it('uses the configured working directory', function () {
     $tmpDir = sys_get_temp_dir();
 
-    $result = (new ProcessRunner(workingDirectory: $tmpDir))->run('pwd');
+    $result = (new ProcessRunner(workingDirectory: $tmpDir))->run('php -r "echo getcwd();"');
 
     expect(trim($result->output))->toBe($tmpDir);
 });
