@@ -44,7 +44,7 @@ it('removes a package by name', function () {
         ->and($cart->names())->toBe(['debug/inspector']);
 });
 
-it('returns an empty list when removing from an empty cart', function () {
+it('keeps the cart empty when removing a non-existent package', function () {
     $cart = new InstallationCart;
 
     $cart->remove('laravel/sanctum');
