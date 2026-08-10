@@ -7,7 +7,7 @@ use Xn\Orchestrator\Exceptions\PackageInstallationException;
 
 use function Laravel\Prompts\spin;
 
-final class ProcessRunner
+class ProcessRunner
 {
     public function __construct(
         private int $timeout = 120,
