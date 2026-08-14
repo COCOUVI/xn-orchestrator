@@ -7,7 +7,7 @@ use Xn\Orchestrator\Exceptions\PackageInstallationException;
 use Xn\Orchestrator\Support\ProcessResult;
 use Xn\Orchestrator\Support\ProcessRunner;
 
-const MAIN_MENU = ['Browse the catalog', 'View cart', 'Finish and install', 'Quit'];
+const MAIN_MENU = ['Browse the catalog', 'Search packages', 'View cart', 'Finish and install', 'Quit'];
 const CATEGORY_MENU = ['Authentication', 'Debugging', '← Back to main menu'];
 const AUTH_PACKAGES = ['laravel/sanctum'];
 const DEBUG_PACKAGES = ['debug/inspector'];
@@ -187,5 +187,193 @@ it('shows a warning and exits cleanly when the catalog is empty', function () {
 
     $this->artisan('x:install')
         ->expectsOutputToContain('The catalog is empty. Nothing to install.')
+        ->assertExitCode(0);
+});
+
+it('searches for a package by keyword and adds it to the cart', function () {
+    $catalog = Mockery::mock(CatalogRepositoryInterface::class);
+
+    $sanctum = new PackageDefinition(
+        name: 'laravel/sanctum',
+        category: 'Authentication',
+        tags: ['api', 'token'],
+        installSteps: ['echo installing sanctum'],
+    );
+
+    $debugger = new PackageDefinition(
+        name: 'debug/inspector',
+        category: 'Debugging',
+        tags: ['debug'],
+        installSteps: ['echo inspecting'],
+    );
+
+    $catalog->shouldReceive('getAll')->andReturn([$sanctum, $debugger]);
+    $catalog->shouldReceive('findByName')->with('laravel/sanctum')->andReturn($sanctum);
+    $catalog->shouldReceive('findByName')->with('debug/inspector')->andReturn($debugger);
+
+    $this->app->instance(CatalogRepositoryInterface::class, $catalog);
+
+    $commands = [];
+    $this->app->instance(ProcessRunner::class, recordedRunner($commands));
+
+    $this->artisan('x:install')
+        ->expectsChoice('What do you want to do?', 'Search packages', MAIN_MENU)
+        ->expectsSearch('Search for a package', 'laravel/sanctum', 'sanct', ['laravel/sanctum'])
+        ->expectsOutputToContain('Added laravel/sanctum to the cart.')
+        ->expectsChoice('What do you want to do?', 'Finish and install', MAIN_MENU)
+        ->expectsConfirmation('Proceed with installation?', 'yes')
+        ->expectsOutputToContain('echo installing sanctum')
+        ->assertExitCode(0);
+
+    expect($commands)->toBe(['echo installing sanctum']);
+});
+
+it('blocks installation when the cart contains conflicting packages', function () {
+    $catalog = Mockery::mock(CatalogRepositoryInterface::class);
+
+    $breeze = new PackageDefinition(
+        name: 'laravel/breeze',
+        category: 'Authentication',
+        tags: ['auth'],
+        installSteps: ['echo installing breeze'],
+        conflictsWith: ['laravel/jetstream'],
+    );
+
+    $jetstream = new PackageDefinition(
+        name: 'laravel/jetstream',
+        category: 'Authentication',
+        tags: ['auth', 'teams'],
+        installSteps: ['echo installing jetstream'],
+        conflictsWith: ['laravel/breeze'],
+    );
+
+    $catalog->shouldReceive('getAll')->andReturn([$breeze, $jetstream]);
+    $catalog->shouldReceive('findByCategory')->with('Authentication')->andReturn([$breeze, $jetstream]);
+
+    $this->app->instance(CatalogRepositoryInterface::class, $catalog);
+
+    $this->app->instance(ProcessRunner::class, fakeRunner());
+
+    $this->artisan('x:install')
+        ->expectsChoice('What do you want to do?', 'Browse the catalog', MAIN_MENU)
+        ->expectsChoice('Select a category', 'Authentication', ['Authentication', '← Back to main menu'])
+        ->expectsChoice('Select packages in Authentication', ['laravel/breeze', 'laravel/jetstream'], ['laravel/breeze', 'laravel/jetstream'])
+        ->expectsChoice('Select a category', '← Back to main menu', ['Authentication', '← Back to main menu'])
+        ->expectsChoice('What do you want to do?', 'Finish and install', MAIN_MENU)
+        ->expectsOutputToContain('laravel/breeze conflicts with laravel/jetstream')
+        ->expectsOutputToContain('Remove one of the conflicting packages from the cart and try again.')
+        ->expectsChoice('What do you want to do?', 'Quit', MAIN_MENU)
+        ->assertExitCode(0);
+});
+
+it('installs a missing dependency first and asks before adding it', function () {
+    $catalog = Mockery::mock(CatalogRepositoryInterface::class);
+
+    $filament = new PackageDefinition(
+        name: 'filament/filament',
+        category: 'Admin Panels',
+        tags: ['filament'],
+        installSteps: ['echo installing filament'],
+        dependsOn: ['spatie/laravel-permission'],
+    );
+
+    $permission = new PackageDefinition(
+        name: 'spatie/laravel-permission',
+        category: 'Authorization',
+        tags: ['permissions'],
+        installSteps: ['echo installing permission'],
+    );
+
+    $catalog->shouldReceive('getAll')->andReturn([$filament, $permission]);
+    $catalog->shouldReceive('findByCategory')->with('Admin Panels')->andReturn([$filament]);
+    $catalog->shouldReceive('findByCategory')->with('Authorization')->andReturn([$permission]);
+    $catalog->shouldReceive('findByName')->with('spatie/laravel-permission')->andReturn($permission);
+
+    $this->app->instance(CatalogRepositoryInterface::class, $catalog);
+
+    $commands = [];
+    $this->app->instance(ProcessRunner::class, recordedRunner($commands));
+
+    $this->artisan('x:install')
+        ->expectsChoice('What do you want to do?', 'Browse the catalog', MAIN_MENU)
+        ->expectsChoice('Select a category', 'Admin Panels', ['Admin Panels', 'Authorization', '← Back to main menu'])
+        ->expectsChoice('Select packages in Admin Panels', ['filament/filament'], ['filament/filament'])
+        ->expectsChoice('Select a category', '← Back to main menu', ['Admin Panels', 'Authorization', '← Back to main menu'])
+        ->expectsChoice('What do you want to do?', 'Finish and install', MAIN_MENU)
+        ->expectsConfirmation('spatie/laravel-permission is required. Add it to the cart?', 'yes')
+        ->expectsConfirmation('Proceed with installation?', 'yes')
+        ->assertExitCode(0);
+
+    expect($commands)->toBe([
+        'echo installing permission',
+        'echo installing filament',
+    ]);
+});
+
+it('warns about an unavailable dependency and continues', function () {
+    $catalog = Mockery::mock(CatalogRepositoryInterface::class);
+
+    $package = new PackageDefinition(
+        name: 'some/package',
+        category: 'Test',
+        tags: [],
+        installSteps: ['echo installing some/package'],
+        dependsOn: ['missing/dependency'],
+    );
+
+    $catalog->shouldReceive('getAll')->andReturn([$package]);
+    $catalog->shouldReceive('findByCategory')->with('Test')->andReturn([$package]);
+    $catalog->shouldReceive('findByName')->with('missing/dependency')->andReturn(null);
+
+    $this->app->instance(CatalogRepositoryInterface::class, $catalog);
+    $this->app->instance(ProcessRunner::class, fakeRunner());
+
+    $this->artisan('x:install')
+        ->expectsChoice('What do you want to do?', 'Browse the catalog', MAIN_MENU)
+        ->expectsChoice('Select a category', 'Test', ['Test', '← Back to main menu'])
+        ->expectsChoice('Select packages in Test', ['some/package'], ['some/package'])
+        ->expectsChoice('Select a category', '← Back to main menu', ['Test', '← Back to main menu'])
+        ->expectsChoice('What do you want to do?', 'Finish and install', MAIN_MENU)
+        ->expectsOutputToContain('Dependency missing/dependency is not available in the catalog.')
+        ->expectsConfirmation('Proceed with installation?', 'yes')
+        ->assertExitCode(0);
+});
+
+it('removes a package whose dependency was declined', function () {
+    $catalog = Mockery::mock(CatalogRepositoryInterface::class);
+
+    $filament = new PackageDefinition(
+        name: 'filament/filament',
+        category: 'Admin Panels',
+        tags: ['filament'],
+        installSteps: ['echo installing filament'],
+        dependsOn: ['spatie/laravel-permission'],
+    );
+
+    $permission = new PackageDefinition(
+        name: 'spatie/laravel-permission',
+        category: 'Authorization',
+        tags: ['permissions'],
+        installSteps: ['echo installing permission'],
+    );
+
+    $catalog->shouldReceive('getAll')->andReturn([$filament, $permission]);
+    $catalog->shouldReceive('findByCategory')->with('Admin Panels')->andReturn([$filament]);
+    $catalog->shouldReceive('findByCategory')->with('Authorization')->andReturn([$permission]);
+    $catalog->shouldReceive('findByName')->with('spatie/laravel-permission')->andReturn($permission);
+
+    $this->app->instance(CatalogRepositoryInterface::class, $catalog);
+    $this->app->instance(ProcessRunner::class, fakeRunner());
+
+    $this->artisan('x:install')
+        ->expectsChoice('What do you want to do?', 'Browse the catalog', MAIN_MENU)
+        ->expectsChoice('Select a category', 'Admin Panels', ['Admin Panels', 'Authorization', '← Back to main menu'])
+        ->expectsChoice('Select packages in Admin Panels', ['filament/filament'], ['filament/filament'])
+        ->expectsChoice('Select a category', '← Back to main menu', ['Admin Panels', 'Authorization', '← Back to main menu'])
+        ->expectsChoice('What do you want to do?', 'Finish and install', MAIN_MENU)
+        ->expectsConfirmation('spatie/laravel-permission is required. Add it to the cart?', 'no')
+        ->expectsOutputToContain('Removed filament/filament from the cart because its dependency spatie/laravel-permission was declined.')
+        ->expectsOutputToContain('Your cart is empty after resolving dependencies.')
+        ->expectsChoice('What do you want to do?', 'Quit', MAIN_MENU)
         ->assertExitCode(0);
 });

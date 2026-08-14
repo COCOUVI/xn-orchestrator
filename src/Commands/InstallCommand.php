@@ -6,11 +6,14 @@ use Illuminate\Console\Command;
 use Xn\Orchestrator\Cart\InstallationCart;
 use Xn\Orchestrator\Catalog\CatalogRepositoryInterface;
 use Xn\Orchestrator\Catalog\PackageDefinition;
+use Xn\Orchestrator\Exceptions\CircularDependencyException;
 use Xn\Orchestrator\Exceptions\PackageInstallationException;
+use Xn\Orchestrator\Support\DependencyResolver;
 use Xn\Orchestrator\Support\ProcessRunner;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
+use function Laravel\Prompts\search;
 use function Laravel\Prompts\select;
 
 class InstallCommand extends Command
@@ -24,6 +27,7 @@ class InstallCommand extends Command
     public function __construct(
         private CatalogRepositoryInterface $catalog,
         private ProcessRunner $processRunner,
+        private DependencyResolver $resolver,
     ) {
         parent::__construct();
     }
@@ -43,11 +47,12 @@ class InstallCommand extends Command
         while (true) {
             $choice = select(
                 label: 'What do you want to do?',
-                options: ['Browse the catalog', 'View cart', 'Finish and install', 'Quit'],
+                options: ['Browse the catalog', 'Search packages', 'View cart', 'Finish and install', 'Quit'],
             );
 
             $result = match ($choice) {
                 'Browse the catalog' => $this->browseCatalog($cart),
+                'Search packages' => $this->searchPackages($cart),
                 'View cart' => $this->viewCart($cart),
                 'Finish and install' => $this->installCart($cart),
                 'Quit' => self::SUCCESS,
@@ -127,11 +132,48 @@ class InstallCommand extends Command
         }
     }
 
+    private function searchPackages(InstallationCart $cart): void
+    {
+        $name = search(
+            label: 'Search for a package',
+            options: function (string $value) {
+                $needle = strtolower(trim($value));
+
+                return collect($this->catalog->getAll())
+                    ->filter(
+                        fn (PackageDefinition $package) => $needle === ''
+                            || str_contains(strtolower($package->name), $needle)
+                            || collect($package->tags)->contains(
+                                fn (string $tag) => str_contains(strtolower($tag), $needle),
+                            )
+                    )
+                    ->map(fn (PackageDefinition $package) => $package->name)
+                    ->values()
+                    ->all();
+            },
+        );
+
+        $package = $this->catalog->findByName($name);
+
+        if ($package === null) {
+            $this->components->error("Package '{$name}' was not found in the catalog.");
+
+            return;
+        }
+
+        $cart->add($package);
+        $this->components->info("Added {$package->name} to the cart.");
+    }
+
     private function installCart(InstallationCart $cart): ?int
     {
         if ($cart->count() === 0) {
             $this->components->warn('Your cart is empty. Add packages first.');
 
+            return null;
+        }
+
+        if (! $this->resolveDependencies($cart)) {
             return null;
         }
 
@@ -152,6 +194,76 @@ class InstallCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    private function resolveDependencies(InstallationCart $cart): bool
+    {
+        $packages = $cart->all();
+
+        $conflicts = $this->resolver->findConflicts($packages);
+
+        if ($conflicts !== []) {
+            $this->components->error('The following packages conflict and cannot be installed together:');
+
+            foreach ($conflicts as [$first, $second]) {
+                $this->components->error(sprintf('  %s conflicts with %s', $first, $second));
+            }
+
+            $this->components->info('Remove one of the conflicting packages from the cart and try again.');
+
+            return false;
+        }
+
+        $missing = $this->resolver->findMissingDependencies($packages);
+
+        foreach ($missing as $dependencyName) {
+            $dependency = $this->catalog->findByName($dependencyName);
+
+            if ($dependency === null) {
+                $this->components->warn("Dependency {$dependencyName} is not available in the catalog.");
+
+                continue;
+            }
+
+            if (confirm("{$dependencyName} is required. Add it to the cart?")) {
+                $cart->add($dependency);
+                $this->components->info("Added {$dependencyName} to the cart.");
+            } else {
+                $dependants = collect($cart->all())
+                    ->filter(
+                        fn (PackageDefinition $package) => in_array($dependencyName, $package->dependsOn, true),
+                    )
+                    ->pluck('name');
+
+                foreach ($dependants as $dependantName) {
+                    $cart->remove($dependantName);
+                    $this->components->warn("Removed {$dependantName} from the cart because its dependency {$dependencyName} was declined.");
+                }
+            }
+        }
+
+        if ($cart->count() === 0) {
+            $this->components->warn('Your cart is empty after resolving dependencies.');
+
+            return false;
+        }
+
+        return $this->resolveOrder($cart);
+    }
+
+    private function resolveOrder(InstallationCart $cart): bool
+    {
+        try {
+            $ordered = $this->resolver->resolveOrder($cart->all());
+        } catch (CircularDependencyException $exception) {
+            $this->components->error($exception->getMessage());
+
+            return false;
+        }
+
+        $cart->replace($ordered);
+
+        return true;
     }
 
     private function displayRecap(InstallationCart $cart): void

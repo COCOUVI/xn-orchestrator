@@ -26,6 +26,16 @@ final class InstallationCart
         ));
     }
 
+    /**
+     * Replace the cart contents with a reordered list of the same packages.
+     *
+     * @param  list<PackageDefinition>  $packages
+     */
+    public function replace(array $packages): void
+    {
+        $this->items = $packages;
+    }
+
     public function has(string $name): bool
     {
         foreach ($this->items as $package) {
