@@ -194,7 +194,7 @@ Permettre de sélectionner plusieurs packages à travers plusieurs catégories a
 
 ## Feature 7 — DependencyResolver (depends_on / conflicts_with)
 
-**Sprint 5 | Statut : À faire | Dépend de : Feature 6**
+**Sprint 5 | Statut : Fait | Dépend de : Feature 6**
 
 ### Objectif
 
@@ -255,7 +255,7 @@ final class DependencyResolver
 
 ## Feature 8 — SearchCommand
 
-**Sprint 4 | Statut : À faire | Dépend de : Feature 5 (parallèle à Feature 6)**
+**Sprint 4 | Statut : Fait | Dépend de : Feature 5 (parallèle à Feature 6)**
 
 ### Objectif
 
