@@ -20,7 +20,9 @@
         "spatie/laravel-package-tools": "^1.16",
         "illuminate/contracts": "^11.0||^12.0||^13.0",
         "laravel/prompts": "^0.3.22",
-        "symfony/process": "^7.0||^8.0"
+        "composer/semver": "^3.4",
+        "symfony/process": "^7.0||^8.0",
+        "symfony/yaml": "^7.0||^8.0"
     },
     "require-dev": {
         "laravel/pint": "^1.14",

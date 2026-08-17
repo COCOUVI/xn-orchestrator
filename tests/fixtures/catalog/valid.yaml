@@ -1,0 +1,11 @@
+name: vendor/package
+category: Testing
+tags: [test, demo]
+install:
+  - 'echo installing vendor/package'
+  - 'echo finishing'
+supported:
+  laravel: ['^11.0', '^12.0', '^13.0']
+  php: '^8.3'
+depends_on: [vendor/dependency]
+conflicts_with: [vendor/other]

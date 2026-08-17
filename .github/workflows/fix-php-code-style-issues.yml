@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - '**.php'
+      - '.github/workflows/fix-php-code-style-issues.yml'
 
 permissions:
   contents: write
@@ -19,8 +20,21 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
 
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+
+      - name: Install dependencies
+        env:
+          COMPOSER_AUTH: '{"github-oauth": {"github.com": "${{ secrets.GITHUB_TOKEN }}"}}'
+        run: composer install --no-interaction --no-progress --prefer-dist
+
       - name: Fix PHP code style issues
         uses: aglipanci/laravel-pint-action@2.6
+        with:
+          usecomposer: true
 
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v7

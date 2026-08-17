@@ -1,0 +1,14 @@
+name: laravel/jetstream
+category: Authentication
+tags: [auth, teams, two-factor]
+install:
+  - 'composer require laravel/jetstream'
+  - 'php artisan jetstream:install livewire'
+  - 'npm install'
+  - 'npm run build'
+  - 'php artisan migrate'
+supported:
+  laravel: ['^11.0', '^12.0', '^13.0']
+  php: '^8.3'
+depends_on: []
+conflicts_with: [laravel/breeze]

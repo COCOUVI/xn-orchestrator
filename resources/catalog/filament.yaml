@@ -1,0 +1,12 @@
+name: filament/filament
+category: Admin Panels
+tags: [filament, panel, admin, tui]
+install:
+  - 'composer require filament/filament:"^3.2" -W'
+  - 'php artisan filament:install --panels'
+  - 'php artisan migrate'
+supported:
+  laravel: ['^11.0', '^12.0', '^13.0']
+  php: '^8.3'
+depends_on: []
+conflicts_with: []

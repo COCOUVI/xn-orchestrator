@@ -274,7 +274,7 @@ Recherche par mot-clé indépendante de la navigation par catégorie, pour l'uti
 
 ## Feature 9 — YamlCatalogLoader
 
-**Sprint 6 | Statut : À faire | Dépend de : Feature 2**
+**Sprint 6 | Statut : Fait | Dépend de : Feature 2**
 
 ### Objectif
 
@@ -312,7 +312,7 @@ conflicts_with: []
 
 ## Feature 10 — CompatibilityChecker
 
-**Sprint 7 | Statut : À faire | Dépend de : Feature 9**
+**Sprint 7 | Statut : Fait | Dépend de : Feature 9**
 
 ### Objectif
 
