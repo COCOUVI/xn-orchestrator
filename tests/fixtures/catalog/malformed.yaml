@@ -1,0 +1,4 @@
+name: vendor/malformed
+category: Broken
+install: [echo never]
+  this: [is: not: valid: yaml

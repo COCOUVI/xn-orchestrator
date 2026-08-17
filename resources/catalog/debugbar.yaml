@@ -1,0 +1,10 @@
+name: barryvdh/laravel-debugbar
+category: Debugging
+tags: [debug, toolbar, queries]
+install:
+  - 'composer require barryvdh/laravel-debugbar --dev'
+supported:
+  laravel: ['^11.0', '^12.0', '^13.0']
+  php: '^8.3'
+depends_on: []
+conflicts_with: []

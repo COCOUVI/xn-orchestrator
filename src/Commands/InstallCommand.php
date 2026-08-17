@@ -8,6 +8,7 @@ use Xn\Orchestrator\Catalog\CatalogRepositoryInterface;
 use Xn\Orchestrator\Catalog\PackageDefinition;
 use Xn\Orchestrator\Exceptions\CircularDependencyException;
 use Xn\Orchestrator\Exceptions\PackageInstallationException;
+use Xn\Orchestrator\Support\CompatibilityChecker;
 use Xn\Orchestrator\Support\DependencyResolver;
 use Xn\Orchestrator\Support\ProcessRunner;
 
@@ -28,6 +29,7 @@ class InstallCommand extends Command
         private CatalogRepositoryInterface $catalog,
         private ProcessRunner $processRunner,
         private DependencyResolver $resolver,
+        private CompatibilityChecker $compatibility,
     ) {
         parent::__construct();
     }
@@ -89,9 +91,17 @@ class InstallCommand extends Command
             return;
         }
 
+        $options = $this->packageOptions($packages);
+
+        if ($options === []) {
+            $this->components->info("No compatible packages in {$category}.");
+
+            return;
+        }
+
         $selected = multiselect(
             label: "Select packages in {$category}",
-            options: $this->packageNames($packages),
+            options: $options,
         );
 
         foreach ($packages as $package) {
@@ -178,6 +188,12 @@ class InstallCommand extends Command
         }
 
         $this->displayRecap($cart);
+
+        if (! $this->confirmCompatibility($cart)) {
+            $this->components->info('Installation cancelled.');
+
+            return null;
+        }
 
         if (! confirm('Proceed with installation?')) {
             $this->components->info('Installation cancelled.');
@@ -314,13 +330,50 @@ class InstallCommand extends Command
             ->all();
     }
 
-    /** @param  list<PackageDefinition>  $packages
-     *  @return list<string> */
-    private function packageNames(array $packages): array
+    /**
+     * @param  list<PackageDefinition>  $packages
+     * @return array<string, string>
+     */
+    private function packageOptions(array $packages): array
     {
-        return array_map(
-            fn (PackageDefinition $package) => $package->name,
-            $packages,
-        );
+        $options = [];
+
+        foreach ($packages as $package) {
+            if ($this->hideIncompatible() && ! $this->compatibility->isCompatible($package)) {
+                continue;
+            }
+
+            $options[$package->name] = $this->compatibility->isCompatible($package)
+                ? $package->name
+                : $package->name.' ⚠ incompatible';
+        }
+
+        return $options;
+    }
+
+    private function hideIncompatible(): bool
+    {
+        return (bool) config('xn-orchestrator.compatibility.hide_incompatible', false);
+    }
+
+    private function confirmCompatibility(InstallationCart $cart): bool
+    {
+        $incompatible = collect($cart->all())
+            ->filter(fn (PackageDefinition $package) => ! $this->compatibility->isCompatible($package))
+            ->pluck('name')
+            ->values()
+            ->all();
+
+        if ($incompatible === []) {
+            return true;
+        }
+
+        $this->components->warn('The following packages are not compatible with your Laravel or PHP version:');
+
+        foreach ($incompatible as $name) {
+            $this->components->warn("  - {$name}");
+        }
+
+        return confirm('Install incompatible packages anyway?');
     }
 }

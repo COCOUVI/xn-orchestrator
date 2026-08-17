@@ -9,8 +9,8 @@ use Xn\Orchestrator\Support\ProcessRunner;
 
 const MAIN_MENU = ['Browse the catalog', 'Search packages', 'View cart', 'Finish and install', 'Quit'];
 const CATEGORY_MENU = ['Authentication', 'Debugging', '← Back to main menu'];
-const AUTH_PACKAGES = ['laravel/sanctum'];
-const DEBUG_PACKAGES = ['debug/inspector'];
+const AUTH_PACKAGES = ['laravel/sanctum' => 'laravel/sanctum'];
+const DEBUG_PACKAGES = ['debug/inspector' => 'debug/inspector'];
 
 function fakeCatalog(): CatalogRepositoryInterface
 {
@@ -257,7 +257,10 @@ it('blocks installation when the cart contains conflicting packages', function (
     $this->artisan('x:install')
         ->expectsChoice('What do you want to do?', 'Browse the catalog', MAIN_MENU)
         ->expectsChoice('Select a category', 'Authentication', ['Authentication', '← Back to main menu'])
-        ->expectsChoice('Select packages in Authentication', ['laravel/breeze', 'laravel/jetstream'], ['laravel/breeze', 'laravel/jetstream'])
+        ->expectsChoice('Select packages in Authentication', ['laravel/breeze', 'laravel/jetstream'], [
+            'laravel/breeze' => 'laravel/breeze',
+            'laravel/jetstream' => 'laravel/jetstream',
+        ])
         ->expectsChoice('Select a category', '← Back to main menu', ['Authentication', '← Back to main menu'])
         ->expectsChoice('What do you want to do?', 'Finish and install', MAIN_MENU)
         ->expectsOutputToContain('laravel/breeze conflicts with laravel/jetstream')
@@ -297,7 +300,7 @@ it('installs a missing dependency first and asks before adding it', function () 
     $this->artisan('x:install')
         ->expectsChoice('What do you want to do?', 'Browse the catalog', MAIN_MENU)
         ->expectsChoice('Select a category', 'Admin Panels', ['Admin Panels', 'Authorization', '← Back to main menu'])
-        ->expectsChoice('Select packages in Admin Panels', ['filament/filament'], ['filament/filament'])
+        ->expectsChoice('Select packages in Admin Panels', ['filament/filament'], ['filament/filament' => 'filament/filament'])
         ->expectsChoice('Select a category', '← Back to main menu', ['Admin Panels', 'Authorization', '← Back to main menu'])
         ->expectsChoice('What do you want to do?', 'Finish and install', MAIN_MENU)
         ->expectsConfirmation('spatie/laravel-permission is required. Add it to the cart?', 'yes')
@@ -331,7 +334,7 @@ it('warns about an unavailable dependency and continues', function () {
     $this->artisan('x:install')
         ->expectsChoice('What do you want to do?', 'Browse the catalog', MAIN_MENU)
         ->expectsChoice('Select a category', 'Test', ['Test', '← Back to main menu'])
-        ->expectsChoice('Select packages in Test', ['some/package'], ['some/package'])
+        ->expectsChoice('Select packages in Test', ['some/package'], ['some/package' => 'some/package'])
         ->expectsChoice('Select a category', '← Back to main menu', ['Test', '← Back to main menu'])
         ->expectsChoice('What do you want to do?', 'Finish and install', MAIN_MENU)
         ->expectsOutputToContain('Dependency missing/dependency is not available in the catalog.')
@@ -368,12 +371,142 @@ it('removes a package whose dependency was declined', function () {
     $this->artisan('x:install')
         ->expectsChoice('What do you want to do?', 'Browse the catalog', MAIN_MENU)
         ->expectsChoice('Select a category', 'Admin Panels', ['Admin Panels', 'Authorization', '← Back to main menu'])
-        ->expectsChoice('Select packages in Admin Panels', ['filament/filament'], ['filament/filament'])
+        ->expectsChoice('Select packages in Admin Panels', ['filament/filament'], ['filament/filament' => 'filament/filament'])
         ->expectsChoice('Select a category', '← Back to main menu', ['Admin Panels', 'Authorization', '← Back to main menu'])
         ->expectsChoice('What do you want to do?', 'Finish and install', MAIN_MENU)
         ->expectsConfirmation('spatie/laravel-permission is required. Add it to the cart?', 'no')
         ->expectsOutputToContain('Removed filament/filament from the cart because its dependency spatie/laravel-permission was declined.')
         ->expectsOutputToContain('Your cart is empty after resolving dependencies.')
+        ->expectsChoice('What do you want to do?', 'Quit', MAIN_MENU)
+        ->assertExitCode(0);
+});
+
+function incompatibleCatalog(): CatalogRepositoryInterface
+{
+    $catalog = Mockery::mock(CatalogRepositoryInterface::class);
+
+    $compatible = new PackageDefinition(
+        name: 'acme/compatible',
+        category: 'Test',
+        tags: [],
+        installSteps: ['echo installing compatible'],
+    );
+
+    $incompatible = new PackageDefinition(
+        name: 'acme/incompatible',
+        category: 'Test',
+        tags: [],
+        installSteps: ['echo installing incompatible'],
+        supportedLaravel: ['^99.0'],
+        supportedPhp: '^99.0',
+    );
+
+    $catalog->shouldReceive('getAll')->andReturn([$compatible, $incompatible]);
+    $catalog->shouldReceive('findByCategory')->with('Test')->andReturn([$compatible, $incompatible]);
+
+    return $catalog;
+}
+
+it('tags incompatible packages in the category menu', function () {
+    $this->app->instance(CatalogRepositoryInterface::class, incompatibleCatalog());
+    $this->app->instance(ProcessRunner::class, fakeRunner());
+
+    $this->artisan('x:install')
+        ->expectsChoice('What do you want to do?', 'Browse the catalog', MAIN_MENU)
+        ->expectsChoice('Select a category', 'Test', ['Test', '← Back to main menu'])
+        ->expectsChoice('Select packages in Test', ['acme/compatible'], [
+            'acme/compatible' => 'acme/compatible',
+            'acme/incompatible' => 'acme/incompatible ⚠ incompatible',
+        ])
+        ->expectsChoice('Select a category', '← Back to main menu', ['Test', '← Back to main menu'])
+        ->expectsChoice('What do you want to do?', 'Finish and install', MAIN_MENU)
+        ->expectsConfirmation('Proceed with installation?', 'yes')
+        ->expectsOutputToContain('echo installing compatible')
+        ->assertExitCode(0);
+});
+
+it('requires an extra confirmation when installing incompatible packages', function () {
+    $this->app->instance(CatalogRepositoryInterface::class, incompatibleCatalog());
+    $this->app->instance(ProcessRunner::class, fakeRunner());
+
+    $this->artisan('x:install')
+        ->expectsChoice('What do you want to do?', 'Browse the catalog', MAIN_MENU)
+        ->expectsChoice('Select a category', 'Test', ['Test', '← Back to main menu'])
+        ->expectsChoice('Select packages in Test', ['acme/incompatible'], [
+            'acme/compatible' => 'acme/compatible',
+            'acme/incompatible' => 'acme/incompatible ⚠ incompatible',
+        ])
+        ->expectsChoice('Select a category', '← Back to main menu', ['Test', '← Back to main menu'])
+        ->expectsChoice('What do you want to do?', 'Finish and install', MAIN_MENU)
+        ->expectsOutputToContain('The following packages are not compatible with your Laravel or PHP version:')
+        ->expectsConfirmation('Install incompatible packages anyway?', 'yes')
+        ->expectsConfirmation('Proceed with installation?', 'yes')
+        ->expectsOutputToContain('echo installing incompatible')
+        ->assertExitCode(0);
+});
+
+it('cancels the installation when incompatible packages are declined', function () {
+    $this->app->instance(CatalogRepositoryInterface::class, incompatibleCatalog());
+    $this->app->instance(ProcessRunner::class, fakeRunner());
+
+    $this->artisan('x:install')
+        ->expectsChoice('What do you want to do?', 'Browse the catalog', MAIN_MENU)
+        ->expectsChoice('Select a category', 'Test', ['Test', '← Back to main menu'])
+        ->expectsChoice('Select packages in Test', ['acme/incompatible'], [
+            'acme/compatible' => 'acme/compatible',
+            'acme/incompatible' => 'acme/incompatible ⚠ incompatible',
+        ])
+        ->expectsChoice('Select a category', '← Back to main menu', ['Test', '← Back to main menu'])
+        ->expectsChoice('What do you want to do?', 'Finish and install', MAIN_MENU)
+        ->expectsConfirmation('Install incompatible packages anyway?', 'no')
+        ->expectsOutputToContain('Installation cancelled.')
+        ->expectsChoice('What do you want to do?', 'Quit', MAIN_MENU)
+        ->assertExitCode(0);
+});
+
+it('hides incompatible packages from the menu when configured', function () {
+    config(['xn-orchestrator.compatibility.hide_incompatible' => true]);
+
+    $this->app->instance(CatalogRepositoryInterface::class, incompatibleCatalog());
+    $this->app->instance(ProcessRunner::class, fakeRunner());
+
+    $this->artisan('x:install')
+        ->expectsChoice('What do you want to do?', 'Browse the catalog', MAIN_MENU)
+        ->expectsChoice('Select a category', 'Test', ['Test', '← Back to main menu'])
+        ->expectsChoice('Select packages in Test', ['acme/compatible'], [
+            'acme/compatible' => 'acme/compatible',
+        ])
+        ->expectsChoice('Select a category', '← Back to main menu', ['Test', '← Back to main menu'])
+        ->expectsChoice('What do you want to do?', 'Finish and install', MAIN_MENU)
+        ->expectsConfirmation('Proceed with installation?', 'yes')
+        ->expectsOutputToContain('echo installing compatible')
+        ->assertExitCode(0);
+});
+
+it('reports when no compatible packages exist in a category', function () {
+    $catalog = Mockery::mock(CatalogRepositoryInterface::class);
+
+    $incompatible = new PackageDefinition(
+        name: 'acme/incompatible',
+        category: 'Test',
+        tags: [],
+        installSteps: ['echo installing incompatible'],
+        supportedPhp: '^99.0',
+    );
+
+    $catalog->shouldReceive('getAll')->andReturn([$incompatible]);
+    $catalog->shouldReceive('findByCategory')->with('Test')->andReturn([$incompatible]);
+
+    $this->app->instance(CatalogRepositoryInterface::class, $catalog);
+    $this->app->instance(ProcessRunner::class, fakeRunner());
+
+    config(['xn-orchestrator.compatibility.hide_incompatible' => true]);
+
+    $this->artisan('x:install')
+        ->expectsChoice('What do you want to do?', 'Browse the catalog', MAIN_MENU)
+        ->expectsChoice('Select a category', 'Test', ['Test', '← Back to main menu'])
+        ->expectsOutputToContain('No compatible packages in Test.')
+        ->expectsChoice('Select a category', '← Back to main menu', ['Test', '← Back to main menu'])
         ->expectsChoice('What do you want to do?', 'Quit', MAIN_MENU)
         ->assertExitCode(0);
 });

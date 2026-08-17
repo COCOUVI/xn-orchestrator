@@ -1,0 +1,13 @@
+name: laravel/breeze
+category: Authentication
+tags: [auth, scaffolding, tailwind]
+install:
+  - 'composer require laravel/breeze --dev'
+  - 'php artisan breeze:install blade'
+  - 'npm install'
+  - 'npm run build'
+supported:
+  laravel: ['^11.0', '^12.0', '^13.0']
+  php: '^8.3'
+depends_on: []
+conflicts_with: [laravel/jetstream]

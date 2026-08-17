@@ -2,11 +2,11 @@
 
 use Xn\Orchestrator\Catalog\CatalogRepositoryInterface;
 use Xn\Orchestrator\Catalog\PackageDefinition;
-use Xn\Orchestrator\Catalog\StaticCatalog;
+use Xn\Orchestrator\Catalog\YamlCatalog;
 
-it('binds the catalog repository to the static implementation', function () {
+it('binds the catalog repository to the yaml implementation', function () {
     expect(app(CatalogRepositoryInterface::class))
-        ->toBeInstanceOf(StaticCatalog::class);
+        ->toBeInstanceOf(YamlCatalog::class);
 });
 
 it('returns at least six packages from the catalog', function () {

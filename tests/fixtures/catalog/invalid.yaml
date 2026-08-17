@@ -1,0 +1,4 @@
+category: Missing
+tags: [broken]
+install:
+  - 'echo should never load'
