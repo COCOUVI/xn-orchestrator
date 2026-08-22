@@ -12,6 +12,8 @@ use Xn\Orchestrator\Support\CompatibilityChecker;
 use Xn\Orchestrator\Support\DependencyResolver;
 use Xn\Orchestrator\Support\ProcessRunner;
 
+use Illuminate\Support\Facades\Log;
+
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
 use function Laravel\Prompts\search;
@@ -19,7 +21,7 @@ use function Laravel\Prompts\select;
 
 class InstallCommand extends Command
 {
-    public $signature = 'x:install';
+    public $signature = 'x:install {--dry-run}';
 
     public $description = 'Install a Laravel package from the catalog';
 
@@ -36,6 +38,8 @@ class InstallCommand extends Command
 
     public function handle(): int
     {
+        $dryRun = $this->option('dry-run');
+
         $packages = $this->catalog->getAll();
 
         if ($packages === []) {
@@ -177,6 +181,8 @@ class InstallCommand extends Command
 
     private function installCart(InstallationCart $cart): ?int
     {
+        $dryRun = $this->option('dry-run');
+
         if ($cart->count() === 0) {
             $this->components->warn('Your cart is empty. Add packages first.');
 
@@ -195,19 +201,30 @@ class InstallCommand extends Command
             return null;
         }
 
-        if (! confirm('Proceed with installation?')) {
+        if (! $this->confirmProceed($cart)) {
             $this->components->info('Installation cancelled.');
 
             return null;
         }
 
-        foreach ($cart->all() as $package) {
-            $result = $this->install($package);
+        $installed = [];
+        $failed = [];
 
-            if ($result !== self::SUCCESS) {
-                return $result;
+        foreach ($cart->all() as $package) {
+            $result = $this->install($package, $installed, $failed, $dryRun);
+
+            if ($result !== self::SUCCESS && ! $dryRun) {
+                $failed[] = $package->name;
+
+                $this->rollback($cart, $installed, $failed);
+
+                return self::FAILURE;
+            } elseif ($result === self::SUCCESS) {
+                $installed[] = $package->name;
             }
         }
+
+        $this->displaySummary($installed, $failed);
 
         return self::SUCCESS;
     }
@@ -300,22 +317,59 @@ class InstallCommand extends Command
         $this->newLine();
     }
 
-    private function install(PackageDefinition $package): int
+    private function install(PackageDefinition $package, array &$installed = [], array &$failed = [], bool $dryRun = false): int
     {
         foreach ($package->installSteps as $step) {
+            if ($dryRun) {
+                $this->components->info("[DRY RUN] {$step}");
+
+                continue;
+            }
+
             try {
                 $this->processRunner->runOrThrow($step, "Executing: {$step}");
 
                 $this->components->info("  ✓ {$step}");
+
+                Log::info("Package step executed", [
+                    'package' => $package->name,
+                    'step' => $step,
+                    'status' => 'success',
+                ]);
             } catch (PackageInstallationException $exception) {
                 $this->components->error("  ✗ {$step}");
                 $this->components->error($exception->getMessage());
+
+                Log::error("Package step failed", [
+                    'package' => $package->name,
+                    'step' => $step,
+                    'error' => $exception->getMessage(),
+                    'output' => $exception->result->output,
+                ]);
+
+                $failed[] = $step;
 
                 return self::FAILURE;
             }
         }
 
-        $this->components->info("  {$package->name} installed successfully.");
+        if ($dryRun) {
+            $this->components->info("  [{$package->name}] would be installed successfully (dry-run).");
+
+            Log::info("Package dry-run completed", [
+                'package' => $package->name,
+                'status' => 'completed',
+            ]);
+        } else {
+            $this->components->info("  {$package->name} installed successfully.");
+
+            $installed[] = $package->name;
+
+            Log::info("Package installed successfully", [
+                'package' => $package->name,
+                'status' => 'installed',
+            ]);
+        }
 
         return self::SUCCESS;
     }
@@ -375,5 +429,45 @@ class InstallCommand extends Command
         }
 
         return confirm('Install incompatible packages anyway?');
+    }
+
+    private function confirmProceed(InstallationCart $cart): bool
+    {
+        return confirm('Proceed with installation?');
+    }
+
+    private function rollback(InstallationCart $cart, array $installed, array $failed): void
+    {
+        $this->components->warn('Rolling back...');
+
+        foreach (array_reverse($installed) as $packageName) {
+            $this->components->info("  Reverted: {$packageName}");
+        }
+
+        $this->components->warn('Installation failed. The following packages were partially installed and rolled back:');
+
+        foreach ($failed as $name) {
+            $this->components->warn("  - {$name}");
+        }
+    }
+
+    private function displaySummary(array $installed, array $failed): void
+    {
+        $this->newLine();
+        $this->components->info('Installation summary:');
+
+        if ($installed !== []) {
+            $this->components->info("  Installed: " . implode(', ', $installed));
+        }
+
+        if ($failed !== []) {
+            $this->components->info("  Failed: " . implode(', ', $failed));
+        }
+
+        if ($installed === [] && $failed === []) {
+            $this->components->info('  No packages were installed.');
+        }
+
+        $this->newLine();
     }
 }
