@@ -3,6 +3,7 @@
 namespace Xn\Orchestrator\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Xn\Orchestrator\Cart\InstallationCart;
 use Xn\Orchestrator\Catalog\CatalogRepositoryInterface;
 use Xn\Orchestrator\Catalog\PackageDefinition;
@@ -11,8 +12,6 @@ use Xn\Orchestrator\Exceptions\PackageInstallationException;
 use Xn\Orchestrator\Support\CompatibilityChecker;
 use Xn\Orchestrator\Support\DependencyResolver;
 use Xn\Orchestrator\Support\ProcessRunner;
-
-use Illuminate\Support\Facades\Log;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
@@ -331,7 +330,7 @@ class InstallCommand extends Command
 
                 $this->components->info("  ✓ {$step}");
 
-                Log::info("Package step executed", [
+                Log::info('Package step executed', [
                     'package' => $package->name,
                     'step' => $step,
                     'status' => 'success',
@@ -340,7 +339,7 @@ class InstallCommand extends Command
                 $this->components->error("  ✗ {$step}");
                 $this->components->error($exception->getMessage());
 
-                Log::error("Package step failed", [
+                Log::error('Package step failed', [
                     'package' => $package->name,
                     'step' => $step,
                     'error' => $exception->getMessage(),
@@ -356,7 +355,7 @@ class InstallCommand extends Command
         if ($dryRun) {
             $this->components->info("  [{$package->name}] would be installed successfully (dry-run).");
 
-            Log::info("Package dry-run completed", [
+            Log::info('Package dry-run completed', [
                 'package' => $package->name,
                 'status' => 'completed',
             ]);
@@ -365,7 +364,7 @@ class InstallCommand extends Command
 
             $installed[] = $package->name;
 
-            Log::info("Package installed successfully", [
+            Log::info('Package installed successfully', [
                 'package' => $package->name,
                 'status' => 'installed',
             ]);
@@ -457,11 +456,11 @@ class InstallCommand extends Command
         $this->components->info('Installation summary:');
 
         if ($installed !== []) {
-            $this->components->info("  Installed: " . implode(', ', $installed));
+            $this->components->info('  Installed: '.implode(', ', $installed));
         }
 
         if ($failed !== []) {
-            $this->components->info("  Failed: " . implode(', ', $failed));
+            $this->components->info('  Failed: '.implode(', ', $failed));
         }
 
         if ($installed === [] && $failed === []) {

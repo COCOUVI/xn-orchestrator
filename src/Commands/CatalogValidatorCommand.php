@@ -3,11 +3,7 @@
 namespace Xn\Orchestrator\Commands;
 
 use Illuminate\Console\Command;
-use Symfony\Component\Yaml\Exception\ParseException;
 use Symfony\Component\Yaml\Yaml;
-
-use function Laravel\Prompts\multiselect;
-use function Laravel\Prompts\select;
 
 class CatalogValidatorCommand extends Command
 {
@@ -103,7 +99,7 @@ class CatalogValidatorCommand extends Command
     private function displayResults(array $validFiles, array $invalidFiles): void
     {
         $this->newLine();
-        $this->components->info("Validation results:");
+        $this->components->info('Validation results:');
 
         $validFilesCount = count($validFiles);
         $invalidFilesCount = count($invalidFiles);
