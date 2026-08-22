@@ -31,4 +31,18 @@ return [
     'compatibility' => [
         'hide_incompatible' => false,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Logging
+    |--------------------------------------------------------------------------
+    |
+    | Dedicated log channel for package orchestrator installations.
+    | Logs are written to `storage/logs/package-orchestrator.log`.
+    |
+    */
+
+    'logging' => [
+        'channel' => 'package-orchestrator',
+    ],
 ];
