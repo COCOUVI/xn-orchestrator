@@ -12,7 +12,7 @@ it('binds the catalog repository to the yaml implementation', function () {
 it('returns at least six packages from the catalog', function () {
     $packages = app(CatalogRepositoryInterface::class)->getAll();
 
-    expect($packages)->toHaveCount(8);
+    expect($packages)->toHaveCount(24);
 
     foreach ($packages as $package) {
         expect($package)->toBeInstanceOf(PackageDefinition::class);
@@ -43,7 +43,7 @@ it('returns null when the package is not found', function () {
 it('filters packages by category', function () {
     $packages = app(CatalogRepositoryInterface::class)->findByCategory('Authentication');
 
-    expect($packages)->toHaveCount(3);
+    expect($packages)->toHaveCount(4);
 
     foreach ($packages as $package) {
         expect($package)
