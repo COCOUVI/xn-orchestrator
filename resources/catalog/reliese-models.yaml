@@ -1,0 +1,11 @@
+name: reliese/laravel
+category: Development
+tags: [models, generator, eloquent]
+install:
+  - 'composer require reliese/laravel --dev'
+  - 'php artisan vendor:publish --tag=reliese-models'
+supported:
+  laravel: ['^11.0', '^12.0', '^13.0']
+  php: '^8.2'
+depends_on: []
+conflicts_with: []

@@ -1,0 +1,12 @@
+name: barryvdh/laravel-ide-helper
+category: Development
+tags: [ide, autocomplete, phpstorm]
+install:
+  - 'composer require barryvdh/laravel-ide-helper --dev'
+  - 'php artisan vendor:publish --provider="Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider" --tag=config'
+  - 'php artisan ide-helper:generate'
+supported:
+  laravel: ['^11.0', '^12.0', '^13.0']
+  php: '^8.3'
+depends_on: []
+conflicts_with: []

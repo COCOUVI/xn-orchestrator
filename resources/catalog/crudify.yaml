@@ -1,0 +1,11 @@
+name: devalade/crudify
+category: Scaffolding
+tags: [crud, livewire, generator]
+install:
+  - 'composer require devalade/crudify --dev'
+  - 'php artisan crudify:install'
+supported:
+  laravel: ['^11.0', '^12.0', '^13.0']
+  php: '^8.2'
+depends_on: [livewire/livewire]
+conflicts_with: []

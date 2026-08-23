@@ -1,0 +1,11 @@
+name: spatie/laravel-backup
+category: Backups
+tags: [backup, database, storage]
+install:
+  - 'composer require spatie/laravel-backup'
+  - 'php artisan vendor:publish --provider="Spatie\Backup\BackupServiceProvider"'
+supported:
+  laravel: ['^11.0', '^12.0', '^13.0']
+  php: '^8.3'
+depends_on: []
+conflicts_with: []
