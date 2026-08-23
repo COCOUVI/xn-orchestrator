@@ -5,6 +5,6 @@ install:
   - 'composer require laravel/socialite'
 supported:
   laravel: ['^11.0', '^12.0', '^13.0']
-  php: '^8.3'
+  php: '^7.2|^8.0'
 depends_on: []
 conflicts_with: []
