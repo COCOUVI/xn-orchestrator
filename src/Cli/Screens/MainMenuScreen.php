@@ -32,7 +32,7 @@ final class MainMenuScreen implements ScreenHandler
         $choice = select(
             label: 'Main Menu',
             options: [self::BROWSE, self::SEARCH, self::CART, self::INSTALL, self::QUIT],
-            hint: 'Up/Down Navigate   Enter Confirm',
+            hint: '↑/↓ Navigate   Enter Select',
         );
 
         return match ($choice) {
