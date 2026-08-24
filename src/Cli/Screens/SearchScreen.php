@@ -17,7 +17,7 @@ final class SearchScreen implements ScreenHandler
         $name = search(
             label: 'Search for a package',
             options: fn (string $value) => $this->matches($context, $value),
-            hint: 'Type to filter   Up/Down Navigate   Enter Select',
+            hint: "Type to filter   ↑/↓ Navigate   Enter Select",
         );
 
         $package = $context->catalog->findByName($name);

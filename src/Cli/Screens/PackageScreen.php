@@ -30,11 +30,14 @@ final class PackageScreen implements ScreenHandler
             return ScreenResult::goto(Screen::Categories);
         }
 
+        $context->io->line($category);
+        $context->io->newLine();
+
         $selected = multiselect(
-            label: "Select packages in {$category}",
+            label: 'Select packages',
             options: $options,
             default: $this->previouslySelected($context, $packages),
-            hint: 'Space Select   Enter Continue',
+            hint: "↑/↓ Navigate   Space Toggle   Enter Confirm",
         );
 
         $this->syncCart($context, $packages, $selected);

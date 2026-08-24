@@ -93,10 +93,10 @@ it('installs packages selected from multiple categories keeping the cart across 
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
+        ->expectsChoice('Select packages', ['laravel/sanctum'], AUTH_PACKAGES())
         ->expectsOutputToContain('1 package selected')
         ->expectsChoice('Select a category', 'Debugging', categoriesMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Select packages in Debugging', ['debug/inspector'], DEBUG_PACKAGES())
+        ->expectsChoice('Select packages', ['debug/inspector'], DEBUG_PACKAGES())
         ->expectsOutputToContain('2 packages selected')
         ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
@@ -121,9 +121,9 @@ it('keeps selections when reopening a category and does not duplicate installs',
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
+        ->expectsChoice('Select packages', ['laravel/sanctum'], AUTH_PACKAGES())
         ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
+        ->expectsChoice('Select packages', ['laravel/sanctum'], AUTH_PACKAGES())
         ->expectsOutputToContain('1 package selected')
         ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
@@ -143,7 +143,7 @@ it('reports the failing step with the raw error message', function () {
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
+        ->expectsChoice('Select packages', ['laravel/sanctum'], AUTH_PACKAGES())
         ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Proceed with installation?', 'yes')
@@ -172,7 +172,7 @@ it('stops executing the remaining steps after a failure', function () {
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
+        ->expectsChoice('Select packages', ['laravel/sanctum'], AUTH_PACKAGES())
         ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Proceed with installation?', 'yes')
@@ -189,7 +189,7 @@ it('cancels the installation when the user declines and returns to the menu', fu
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
+        ->expectsChoice('Select packages', ['laravel/sanctum'], AUTH_PACKAGES())
         ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Proceed with installation?', 'no')
@@ -205,7 +205,7 @@ it('removes a package from the grouped cart view', function () {
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
+        ->expectsChoice('Select packages', ['laravel/sanctum'], AUTH_PACKAGES())
         ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Main Menu', 'View cart', mainMenu())
         ->expectsOutputToContain('Your cart')
@@ -293,7 +293,7 @@ it('blocks installation when the cart contains conflicting packages', function (
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication']))
-        ->expectsChoice('Select packages in Authentication', ['laravel/breeze', 'laravel/jetstream'], [
+        ->expectsChoice('Select packages', ['laravel/breeze', 'laravel/jetstream'], [
             'laravel/breeze' => 'laravel/breeze',
             'laravel/jetstream' => 'laravel/jetstream',
         ])
@@ -341,7 +341,7 @@ it('installs a missing dependency first and asks before adding it', function () 
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Admin Panels', categoriesMenu(['Admin Panels', 'Authorization']))
-        ->expectsChoice('Select packages in Admin Panels', ['filament/filament'], ['filament/filament' => 'filament/filament'])
+        ->expectsChoice('Select packages', ['filament/filament'], ['filament/filament' => 'filament/filament'])
         ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Admin Panels', 'Authorization']))
         ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('spatie/laravel-permission is required. Add it to the cart?', 'yes')
@@ -375,7 +375,7 @@ it('warns about an unavailable dependency and continues', function () {
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Test', categoriesMenu(['Test']))
-        ->expectsChoice('Select packages in Test', ['some/package'], ['some/package' => 'some/package'])
+        ->expectsChoice('Select packages', ['some/package'], ['some/package' => 'some/package'])
         ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Test']))
         ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsOutputToContain('Dependency missing/dependency is not available in the catalog.')
@@ -390,7 +390,7 @@ it('removes a package whose dependency was declined', function () {
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Admin Panels', categoriesMenu(['Admin Panels', 'Authorization']))
-        ->expectsChoice('Select packages in Admin Panels', ['filament/filament'], ['filament/filament' => 'filament/filament'])
+        ->expectsChoice('Select packages', ['filament/filament'], ['filament/filament' => 'filament/filament'])
         ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Admin Panels', 'Authorization']))
         ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('spatie/laravel-permission is required. Add it to the cart?', 'no')
@@ -433,7 +433,7 @@ it('tags incompatible packages in the category menu', function () {
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Test', categoriesMenu(['Test']))
-        ->expectsChoice('Select packages in Test', ['acme/compatible'], [
+        ->expectsChoice('Select packages', ['acme/compatible'], [
             'acme/compatible' => 'acme/compatible',
             'acme/incompatible' => 'acme/incompatible (incompatible)',
         ])
@@ -451,7 +451,7 @@ it('requires an extra confirmation when installing incompatible packages', funct
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Test', categoriesMenu(['Test']))
-        ->expectsChoice('Select packages in Test', ['acme/incompatible'], [
+        ->expectsChoice('Select packages', ['acme/incompatible'], [
             'acme/compatible' => 'acme/compatible',
             'acme/incompatible' => 'acme/incompatible (incompatible)',
         ])
@@ -471,7 +471,7 @@ it('cancels the installation when incompatible packages are declined', function 
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Test', categoriesMenu(['Test']))
-        ->expectsChoice('Select packages in Test', ['acme/incompatible'], [
+        ->expectsChoice('Select packages', ['acme/incompatible'], [
             'acme/compatible' => 'acme/compatible',
             'acme/incompatible' => 'acme/incompatible (incompatible)',
         ])
@@ -492,7 +492,7 @@ it('hides incompatible packages from the menu when configured', function () {
     $this->artisan('x:install')
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Test', categoriesMenu(['Test']))
-        ->expectsChoice('Select packages in Test', ['acme/compatible'], [
+        ->expectsChoice('Select packages', ['acme/compatible'], [
             'acme/compatible' => 'acme/compatible',
         ])
         ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Test']))
@@ -539,7 +539,7 @@ it('previews every step without running commands in dry-run mode', function () {
     $this->artisan('x:install', ['--dry-run' => true])
         ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
         ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
+        ->expectsChoice('Select packages', ['laravel/sanctum'], AUTH_PACKAGES())
         ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Proceed with installation?', 'yes')
