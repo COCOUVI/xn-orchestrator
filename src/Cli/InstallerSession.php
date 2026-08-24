@@ -3,7 +3,8 @@
 namespace Xn\Orchestrator\Cli;
 
 use Xn\Orchestrator\Cli\Screens\CartScreen;
-use Xn\Orchestrator\Cli\Screens\CategoryScreen;
+use Xn\Orchestrator\Cli\Screens\CategoriesScreen;
+use Xn\Orchestrator\Cli\Screens\MainMenuScreen;
 use Xn\Orchestrator\Cli\Screens\PackageScreen;
 use Xn\Orchestrator\Cli\Screens\ReviewScreen;
 use Xn\Orchestrator\Cli\Screens\SearchScreen;
@@ -28,9 +29,7 @@ final class InstallerSession
             return 0;
         }
 
-        $this->banner();
-
-        $current = Screen::Categories;
+        $current = Screen::Menu;
 
         while (true) {
             $handler = $this->handlerFor($current);
@@ -45,24 +44,19 @@ final class InstallerSession
                 $this->category = $result->payload;
             }
 
-            $current = $result->next ?? Screen::Categories;
+            $current = $result->next ?? Screen::Menu;
         }
     }
 
     private function handlerFor(Screen $screen): ScreenHandler
     {
         return match ($screen) {
+            Screen::Categories => new CategoriesScreen,
             Screen::Packages => new PackageScreen,
             Screen::Search => new SearchScreen,
             Screen::Cart => new CartScreen,
             Screen::Review => new ReviewScreen($this->resolver, $this->processRunner),
-            Screen::Categories => new CategoryScreen,
+            Screen::Menu => new MainMenuScreen,
         };
-    }
-
-    private function banner(): void
-    {
-        $this->context->io->line('xn-orchestrator — interactive package installer');
-        $this->context->io->newLine();
     }
 }

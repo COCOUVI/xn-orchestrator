@@ -11,20 +11,14 @@ use Xn\Orchestrator\Support\DependencyResolver;
 use Xn\Orchestrator\Support\ProcessResult;
 use Xn\Orchestrator\Support\ProcessRunner;
 
-function mainMenu(array $categories): array
+function mainMenu(): array
 {
-    $menu = [];
+    return ['Browse categories', 'Search packages', 'View cart', 'Finish and install', 'Quit'];
+}
 
-    foreach ($categories as $category) {
-        $menu[$category] = $category;
-    }
-
-    return $menu + [
-        'Search packages' => 'Search packages',
-        'View cart' => 'View cart',
-        'Finish and install' => 'Finish and install',
-        'Quit' => 'Quit',
-    ];
+function categoriesMenu(array $categories): array
+{
+    return [...$categories, 'Back to main menu'];
 }
 
 function fakeCatalog(): CatalogRepositoryInterface
@@ -80,6 +74,16 @@ function recordedRunner(array &$commands): MockInterface
     return $runner;
 }
 
+function AUTH_PACKAGES(): array
+{
+    return ['laravel/sanctum' => 'laravel/sanctum'];
+}
+
+function DEBUG_PACKAGES(): array
+{
+    return ['debug/inspector' => 'debug/inspector'];
+}
+
 it('installs packages selected from multiple categories keeping the cart across screens', function () {
     $this->app->instance(CatalogRepositoryInterface::class, fakeCatalog());
 
@@ -87,13 +91,15 @@ it('installs packages selected from multiple categories keeping the cart across 
     $this->app->instance(ProcessRunner::class, recordedRunner($commands));
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Authentication', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
         ->expectsOutputToContain('1 package selected')
-        ->expectsChoice('Select packages to install', 'Debugging', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Select a category', 'Debugging', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Select packages in Debugging', ['debug/inspector'], DEBUG_PACKAGES())
         ->expectsOutputToContain('2 packages selected')
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Proceed with installation?', 'yes')
         ->expectsOutputToContain('echo installing sanctum')
         ->expectsOutputToContain('echo configuring sanctum')
@@ -108,27 +114,19 @@ it('installs packages selected from multiple categories keeping the cart across 
     ]);
 });
 
-function AUTH_PACKAGES(): array
-{
-    return ['laravel/sanctum' => 'laravel/sanctum'];
-}
-
-function DEBUG_PACKAGES(): array
-{
-    return ['debug/inspector' => 'debug/inspector'];
-}
-
 it('keeps selections when reopening a category and does not duplicate installs', function () {
     $this->app->instance(CatalogRepositoryInterface::class, fakeCatalog());
     $this->app->instance(ProcessRunner::class, fakeRunner());
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Authentication', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
-        ->expectsChoice('Select packages to install', 'Authentication', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
         ->expectsOutputToContain('1 package selected')
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Proceed with installation?', 'yes')
         ->assertExitCode(0);
 });
@@ -143,9 +141,11 @@ it('reports the failing step with the raw error message', function () {
     ));
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Authentication', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Proceed with installation?', 'yes')
         ->expectsOutputToContain('something went terribly wrong')
         ->expectsOutputToContain('Rolling back...')
@@ -170,9 +170,11 @@ it('stops executing the remaining steps after a failure', function () {
     }));
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Authentication', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Proceed with installation?', 'yes')
         ->expectsOutputToContain('boom')
         ->assertExitCode(1);
@@ -185,62 +187,33 @@ it('cancels the installation when the user declines and returns to the menu', fu
     $this->app->instance(ProcessRunner::class, fakeRunner());
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Authentication', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Proceed with installation?', 'no')
         ->expectsOutputToContain('Installation cancelled.')
-        ->expectsChoice('Select packages to install', 'Quit', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Quit', mainMenu())
         ->assertExitCode(0);
 });
 
-it('removes a package from the cart', function () {
+it('removes a package from the grouped cart view', function () {
     $this->app->instance(CatalogRepositoryInterface::class, fakeCatalog());
     $this->app->instance(ProcessRunner::class, fakeRunner());
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Authentication', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
-        ->expectsChoice('Select packages to install', 'View cart', mainMenu(['Authentication', 'Debugging']))
-        ->expectsOutputToContain('Packages in the cart (1)')
-        ->expectsChoice('Select a package to remove', 'laravel/sanctum', ['laravel/sanctum', '← Back'])
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'View cart', mainMenu())
+        ->expectsOutputToContain('Your cart')
+        ->expectsOutputToContain('Total: 1 package')
+        ->expectsChoice('Select a package to remove', 'laravel/sanctum', ['laravel/sanctum', 'Back to main menu'])
         ->expectsOutputToContain('Removed laravel/sanctum from the cart.')
-        ->expectsOutputToContain('Your cart is empty.')
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Select packages to install', 'Quit', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Quit', mainMenu())
         ->assertExitCode(0);
-});
-
-it('warns when finishing with an empty cart', function () {
-    $catalog = Mockery::mock(CatalogRepositoryInterface::class);
-
-    $pkg = new PackageDefinition(
-        name: 'a/b',
-        category: 'Cat',
-        tags: [],
-        installSteps: ['echo hi'],
-    );
-
-    $catalog->shouldReceive('getAll')->andReturn([$pkg]);
-    $catalog->shouldReceive('findByCategory')->with('Cat')->andReturn([$pkg]);
-
-    $this->app->instance(CatalogRepositoryInterface::class, $catalog);
-    $this->app->instance(ProcessRunner::class, fakeRunner());
-
-    $command = new InstallCommand(
-        $catalog,
-        fakeRunner(),
-        $this->app->make(DependencyResolver::class),
-        $this->app->make(CompatibilityChecker::class),
-    );
-    $command->setLaravel($this->app);
-
-    $tester = new CommandTester($command);
-    $tester->setInputs(['Cat', 'a/b', 'View cart', 'a/b', 'Finish and install', 'Quit']);
-    $code = $tester->execute([]);
-
-    expect($code)->toBe(0)
-        ->and(str_contains($tester->getDisplay(), 'Your cart is empty. Add packages first.'))->toBeTrue();
 });
 
 it('shows a warning and exits cleanly when the catalog is empty', function () {
@@ -254,7 +227,7 @@ it('shows a warning and exits cleanly when the catalog is empty', function () {
         ->assertExitCode(0);
 });
 
-it('searches for a package by keyword and adds it to the cart', function () {
+it('searches by name or tags and adds the package to the cart', function () {
     $catalog = Mockery::mock(CatalogRepositoryInterface::class);
 
     $sanctum = new PackageDefinition(
@@ -281,10 +254,10 @@ it('searches for a package by keyword and adds it to the cart', function () {
     $this->app->instance(ProcessRunner::class, recordedRunner($commands));
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Search packages', mainMenu(['Authentication', 'Debugging']))
-        ->expectsSearch('Search for a package', 'laravel/sanctum', 'sanct', ['laravel/sanctum'])
+        ->expectsChoice('Main Menu', 'Search packages', mainMenu())
+        ->expectsSearch('Search for a package', 'laravel/sanctum', 'token', ['laravel/sanctum'])
         ->expectsOutputToContain('Added laravel/sanctum to the cart.')
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Proceed with installation?', 'yes')
         ->expectsOutputToContain('echo installing sanctum')
         ->assertExitCode(0);
@@ -318,38 +291,18 @@ it('blocks installation when the cart contains conflicting packages', function (
     $this->app->instance(ProcessRunner::class, fakeRunner());
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Authentication', mainMenu(['Authentication']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication']))
         ->expectsChoice('Select packages in Authentication', ['laravel/breeze', 'laravel/jetstream'], [
             'laravel/breeze' => 'laravel/breeze',
             'laravel/jetstream' => 'laravel/jetstream',
         ])
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Authentication']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsOutputToContain('laravel/breeze conflicts with laravel/jetstream')
         ->expectsOutputToContain('Remove one of the conflicting packages from the cart and try again.')
-        ->expectsChoice('Select packages to install', 'Quit', mainMenu(['Authentication']))
+        ->expectsChoice('Main Menu', 'Quit', mainMenu())
         ->assertExitCode(0);
-});
-
-it('installs a missing dependency first and asks before adding it', function () {
-    $catalog = dependencyCatalog();
-
-    $this->app->instance(CatalogRepositoryInterface::class, $catalog);
-
-    $commands = [];
-    $this->app->instance(ProcessRunner::class, recordedRunner($commands));
-
-    $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Admin Panels', mainMenu(['Admin Panels', 'Authorization']))
-        ->expectsChoice('Select packages in Admin Panels', ['filament/filament'], ['filament/filament' => 'filament/filament'])
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Admin Panels', 'Authorization']))
-        ->expectsConfirmation('spatie/laravel-permission is required. Add it to the cart?', 'yes')
-        ->expectsConfirmation('Proceed with installation?', 'yes')
-        ->assertExitCode(0);
-
-    expect($commands)->toBe([
-        'echo installing permission',
-        'echo installing filament',
-    ]);
 });
 
 function dependencyCatalog(): CatalogRepositoryInterface
@@ -379,6 +332,28 @@ function dependencyCatalog(): CatalogRepositoryInterface
     return $catalog;
 }
 
+it('installs a missing dependency first and asks before adding it', function () {
+    $this->app->instance(CatalogRepositoryInterface::class, dependencyCatalog());
+
+    $commands = [];
+    $this->app->instance(ProcessRunner::class, recordedRunner($commands));
+
+    $this->artisan('x:install')
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Admin Panels', categoriesMenu(['Admin Panels', 'Authorization']))
+        ->expectsChoice('Select packages in Admin Panels', ['filament/filament'], ['filament/filament' => 'filament/filament'])
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Admin Panels', 'Authorization']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
+        ->expectsConfirmation('spatie/laravel-permission is required. Add it to the cart?', 'yes')
+        ->expectsConfirmation('Proceed with installation?', 'yes')
+        ->assertExitCode(0);
+
+    expect($commands)->toBe([
+        'echo installing permission',
+        'echo installing filament',
+    ]);
+});
+
 it('warns about an unavailable dependency and continues', function () {
     $catalog = Mockery::mock(CatalogRepositoryInterface::class);
 
@@ -398,9 +373,11 @@ it('warns about an unavailable dependency and continues', function () {
     $this->app->instance(ProcessRunner::class, fakeRunner());
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Test', mainMenu(['Test']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Test', categoriesMenu(['Test']))
         ->expectsChoice('Select packages in Test', ['some/package'], ['some/package' => 'some/package'])
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Test']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Test']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsOutputToContain('Dependency missing/dependency is not available in the catalog.')
         ->expectsConfirmation('Proceed with installation?', 'yes')
         ->assertExitCode(0);
@@ -411,13 +388,15 @@ it('removes a package whose dependency was declined', function () {
     $this->app->instance(ProcessRunner::class, fakeRunner());
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Admin Panels', mainMenu(['Admin Panels', 'Authorization']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Admin Panels', categoriesMenu(['Admin Panels', 'Authorization']))
         ->expectsChoice('Select packages in Admin Panels', ['filament/filament'], ['filament/filament' => 'filament/filament'])
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Admin Panels', 'Authorization']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Admin Panels', 'Authorization']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('spatie/laravel-permission is required. Add it to the cart?', 'no')
         ->expectsOutputToContain('Removed filament/filament from the cart because its dependency spatie/laravel-permission was declined.')
         ->expectsOutputToContain('Your cart is empty after resolving dependencies.')
-        ->expectsChoice('Select packages to install', 'Quit', mainMenu(['Admin Panels', 'Authorization']))
+        ->expectsChoice('Main Menu', 'Quit', mainMenu())
         ->assertExitCode(0);
 });
 
@@ -452,12 +431,14 @@ it('tags incompatible packages in the category menu', function () {
     $this->app->instance(ProcessRunner::class, fakeRunner());
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Test', mainMenu(['Test']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Test', categoriesMenu(['Test']))
         ->expectsChoice('Select packages in Test', ['acme/compatible'], [
             'acme/compatible' => 'acme/compatible',
-            'acme/incompatible' => 'acme/incompatible ⚠ incompatible',
+            'acme/incompatible' => 'acme/incompatible (incompatible)',
         ])
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Test']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Test']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Proceed with installation?', 'yes')
         ->expectsOutputToContain('echo installing compatible')
         ->assertExitCode(0);
@@ -468,12 +449,14 @@ it('requires an extra confirmation when installing incompatible packages', funct
     $this->app->instance(ProcessRunner::class, fakeRunner());
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Test', mainMenu(['Test']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Test', categoriesMenu(['Test']))
         ->expectsChoice('Select packages in Test', ['acme/incompatible'], [
             'acme/compatible' => 'acme/compatible',
-            'acme/incompatible' => 'acme/incompatible ⚠ incompatible',
+            'acme/incompatible' => 'acme/incompatible (incompatible)',
         ])
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Test']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Test']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsOutputToContain('The following packages are not compatible with your Laravel or PHP version:')
         ->expectsConfirmation('Install incompatible packages anyway?', 'yes')
         ->expectsConfirmation('Proceed with installation?', 'yes')
@@ -486,15 +469,17 @@ it('cancels the installation when incompatible packages are declined', function 
     $this->app->instance(ProcessRunner::class, fakeRunner());
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Test', mainMenu(['Test']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Test', categoriesMenu(['Test']))
         ->expectsChoice('Select packages in Test', ['acme/incompatible'], [
             'acme/compatible' => 'acme/compatible',
-            'acme/incompatible' => 'acme/incompatible ⚠ incompatible',
+            'acme/incompatible' => 'acme/incompatible (incompatible)',
         ])
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Test']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Test']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Install incompatible packages anyway?', 'no')
         ->expectsOutputToContain('Installation cancelled.')
-        ->expectsChoice('Select packages to install', 'Quit', mainMenu(['Test']))
+        ->expectsChoice('Main Menu', 'Quit', mainMenu())
         ->assertExitCode(0);
 });
 
@@ -505,11 +490,13 @@ it('hides incompatible packages from the menu when configured', function () {
     $this->app->instance(ProcessRunner::class, fakeRunner());
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Test', mainMenu(['Test']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Test', categoriesMenu(['Test']))
         ->expectsChoice('Select packages in Test', ['acme/compatible'], [
             'acme/compatible' => 'acme/compatible',
         ])
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Test']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Test']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Proceed with installation?', 'yes')
         ->expectsOutputToContain('echo installing compatible')
         ->assertExitCode(0);
@@ -535,9 +522,11 @@ it('reports when no compatible packages exist in a category', function () {
     config(['xn-orchestrator.compatibility.hide_incompatible' => true]);
 
     $this->artisan('x:install')
-        ->expectsChoice('Select packages to install', 'Test', mainMenu(['Test']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Test', categoriesMenu(['Test']))
         ->expectsOutputToContain('No compatible packages in Test.')
-        ->expectsChoice('Select packages to install', 'Quit', mainMenu(['Test']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Test']))
+        ->expectsChoice('Main Menu', 'Quit', mainMenu())
         ->assertExitCode(0);
 });
 
@@ -548,9 +537,11 @@ it('previews every step without running commands in dry-run mode', function () {
     $this->app->instance(ProcessRunner::class, recordedRunner($commands));
 
     $this->artisan('x:install', ['--dry-run' => true])
-        ->expectsChoice('Select packages to install', 'Authentication', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
         ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
-        ->expectsChoice('Select packages to install', 'Finish and install', mainMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
         ->expectsConfirmation('Proceed with installation?', 'yes')
         ->expectsOutputToContain('[DRY RUN] echo installing sanctum')
         ->expectsOutputToContain('[DRY RUN] echo configuring sanctum')
@@ -558,4 +549,36 @@ it('previews every step without running commands in dry-run mode', function () {
         ->assertExitCode(0);
 
     expect($commands)->toBe([]);
+});
+
+it('warns when finishing with an empty cart', function () {
+    $catalog = Mockery::mock(CatalogRepositoryInterface::class);
+
+    $pkg = new PackageDefinition(
+        name: 'a/b',
+        category: 'Cat',
+        tags: [],
+        installSteps: ['echo hi'],
+    );
+
+    $catalog->shouldReceive('getAll')->andReturn([$pkg]);
+    $catalog->shouldReceive('findByCategory')->with('Cat')->andReturn([$pkg]);
+
+    $this->app->instance(CatalogRepositoryInterface::class, $catalog);
+    $this->app->instance(ProcessRunner::class, fakeRunner());
+
+    $command = new InstallCommand(
+        $catalog,
+        fakeRunner(),
+        $this->app->make(DependencyResolver::class),
+        $this->app->make(CompatibilityChecker::class),
+    );
+    $command->setLaravel($this->app);
+
+    $tester = new CommandTester($command);
+    $tester->setInputs(['View cart', 'Finish and install', 'Quit']);
+    $code = $tester->execute([]);
+
+    expect($code)->toBe(0)
+        ->and(str_contains($tester->getDisplay(), 'Your cart is empty. Add packages first.'))->toBeTrue();
 });

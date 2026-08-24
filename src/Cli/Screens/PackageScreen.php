@@ -15,6 +15,7 @@ final class PackageScreen implements ScreenHandler
     public function handle(CliContext $context, ?string $payload = null): ScreenResult
     {
         $category = $payload ?? '';
+
         $packages = $context->catalog->findByCategory($category);
 
         if ($packages === []) {
@@ -59,7 +60,7 @@ final class PackageScreen implements ScreenHandler
 
             $options[$package->name] = $context->compatibility->isCompatible($package)
                 ? $package->name
-                : $package->name.' ⚠ incompatible';
+                : $package->name.' (incompatible)';
         }
 
         return $options;
