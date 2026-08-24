@@ -28,7 +28,7 @@ final class CategoryScreen implements ScreenHandler
         $context->io->info($cartCount === 0
             ? 'No packages selected yet'
             : "{$cartCount} package".($cartCount > 1 ? 's' : '').' selected');
-        $context->io->line('↑↓ Navigate   Enter Confirm');
+        $context->io->line('↑↓ Navigate   Enter Confirm   Or type the option number');
 
         $choice = select(
             label: 'Select packages to install',
@@ -45,23 +45,22 @@ final class CategoryScreen implements ScreenHandler
     }
 
     /**
-     * @return array<string, string>
+     * @return list<string>
      */
     private function options(CliContext $context): array
     {
         $categories = collect($context->catalog->getAll())
             ->map(fn (PackageDefinition $package) => $package->category)
             ->unique()
-            ->values();
-
-        return $categories
-            ->mapWithKeys(fn (string $category) => [$category => $category])
-            ->merge([
-                self::SEARCH => self::SEARCH,
-                self::CART => self::CART,
-                self::INSTALL => self::INSTALL,
-                self::QUIT => self::QUIT,
-            ])
+            ->values()
             ->all();
+
+        return [
+            ...$categories,
+            self::SEARCH,
+            self::CART,
+            self::INSTALL,
+            self::QUIT,
+        ];
     }
 }

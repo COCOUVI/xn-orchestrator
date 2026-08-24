@@ -13,17 +13,12 @@ use Xn\Orchestrator\Support\ProcessRunner;
 
 function mainMenu(array $categories): array
 {
-    $menu = [];
-
-    foreach ($categories as $category) {
-        $menu[$category] = $category;
-    }
-
-    return $menu + [
-        'Search packages' => 'Search packages',
-        'View cart' => 'View cart',
-        'Finish and install' => 'Finish and install',
-        'Quit' => 'Quit',
+    return [
+        ...$categories,
+        'Search packages',
+        'View cart',
+        'Finish and install',
+        'Quit',
     ];
 }
 
