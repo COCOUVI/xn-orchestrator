@@ -26,7 +26,7 @@ final class CategoriesScreen implements ScreenHandler
         $category = select(
             label: 'Select a category',
             options: [...$categories, self::BACK],
-            hint: 'Up/Down Navigate   Enter Confirm   Or type the option number',
+            hint: 'Up/Down Navigate   Enter Confirm',
         );
 
         if ($category === self::BACK) {

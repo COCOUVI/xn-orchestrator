@@ -30,9 +30,9 @@ final class MainMenuScreen implements ScreenHandler
         $context->io->line("{$count} package".($count > 1 ? 's' : '').' selected');
 
         $choice = select(
-            label: 'What do you want to do?',
+            label: 'Main Menu',
             options: [self::BROWSE, self::SEARCH, self::CART, self::INSTALL, self::QUIT],
-            hint: 'Up/Down Navigate   Enter Confirm   Or type the option number',
+            hint: 'Up/Down Navigate   Enter Confirm',
         );
 
         return match ($choice) {
