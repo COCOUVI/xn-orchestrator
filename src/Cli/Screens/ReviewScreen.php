@@ -27,11 +27,11 @@ final class ReviewScreen implements ScreenHandler
         if ($context->cart->count() === 0) {
             $context->io->warn('Your cart is empty. Add packages first.');
 
-            return ScreenResult::goto(Screen::Categories);
+            return ScreenResult::goto(Screen::Menu);
         }
 
         if (! $this->resolveDependencies($context)) {
-            return ScreenResult::goto(Screen::Categories);
+            return ScreenResult::goto(Screen::Menu);
         }
 
         $this->displayRecap($context);
@@ -39,13 +39,13 @@ final class ReviewScreen implements ScreenHandler
         if (! $this->confirmCompatibility($context)) {
             $context->io->info('Installation cancelled.');
 
-            return ScreenResult::goto(Screen::Categories);
+            return ScreenResult::goto(Screen::Menu);
         }
 
         if (! confirm('Proceed with installation?')) {
             $context->io->info('Installation cancelled.');
 
-            return ScreenResult::goto(Screen::Categories);
+            return ScreenResult::goto(Screen::Menu);
         }
 
         return $this->execute($context);
@@ -202,7 +202,7 @@ final class ReviewScreen implements ScreenHandler
             try {
                 $this->processRunner->runOrThrow($step, "Executing: {$step}");
 
-                $context->io->info("  ✓ {$step}");
+                $context->io->info("  OK {$step}");
 
                 Log::info('Package step executed', [
                     'package' => $package->name,
@@ -210,7 +210,7 @@ final class ReviewScreen implements ScreenHandler
                     'status' => 'success',
                 ]);
             } catch (PackageInstallationException $exception) {
-                $context->io->error("  ✗ {$step}");
+                $context->io->error("  FAILED {$step}");
                 $context->io->error($exception->getMessage());
 
                 Log::error('Package step failed', [

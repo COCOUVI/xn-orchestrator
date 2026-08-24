@@ -4,6 +4,8 @@ namespace Xn\Orchestrator\Cli;
 
 enum Screen
 {
+    case Menu;
+
     case Categories;
 
     case Packages;

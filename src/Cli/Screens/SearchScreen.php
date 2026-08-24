@@ -17,7 +17,7 @@ final class SearchScreen implements ScreenHandler
         $name = search(
             label: 'Search for a package',
             options: fn (string $value) => $this->matches($context, $value),
-            hint: 'Type to filter   ↑↓ Navigate   Enter Select',
+            hint: 'Type to filter   Up/Down Navigate   Enter Select',
         );
 
         $package = $context->catalog->findByName($name);
@@ -25,7 +25,7 @@ final class SearchScreen implements ScreenHandler
         if ($package === null) {
             $context->io->error("Package '{$name}' was not found in the catalog.");
 
-            return ScreenResult::goto(Screen::Categories);
+            return ScreenResult::goto(Screen::Menu);
         }
 
         $context->cart->add($package);
@@ -34,7 +34,7 @@ final class SearchScreen implements ScreenHandler
         $count = $context->cart->count();
         $context->io->info("{$count} package".($count > 1 ? 's' : '').' selected');
 
-        return ScreenResult::goto(Screen::Categories);
+        return ScreenResult::goto(Screen::Menu);
     }
 
     /**
@@ -48,6 +48,7 @@ final class SearchScreen implements ScreenHandler
             ->filter(
                 fn (PackageDefinition $package) => $needle === ''
                     || str_contains(strtolower($package->name), $needle)
+                    || str_contains(strtolower($package->category), $needle)
                     || collect($package->tags)->contains(
                         fn (string $tag) => str_contains(strtolower($tag), $needle),
                     )
