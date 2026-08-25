@@ -104,7 +104,9 @@ it('installs packages selected from multiple categories keeping the cart across 
         ->expectsOutputToContain('echo installing sanctum')
         ->expectsOutputToContain('echo configuring sanctum')
         ->expectsOutputToContain('echo inspecting')
-        ->expectsOutputToContain('Installed: laravel/sanctum, debug/inspector')
+        ->expectsOutputToContain('Installation completed successfully!')
+        ->expectsOutputToContain('laravel/sanctum')
+        ->expectsOutputToContain('debug/inspector')
         ->assertExitCode(0);
 
     expect($commands)->toBe([
@@ -545,7 +547,7 @@ it('previews every step without running commands in dry-run mode', function () {
         ->expectsConfirmation('Proceed with installation?', 'yes')
         ->expectsOutputToContain('[DRY RUN] echo installing sanctum')
         ->expectsOutputToContain('[DRY RUN] echo configuring sanctum')
-        ->expectsOutputToContain('[laravel/sanctum] would be installed successfully (dry-run).')
+        ->expectsOutputToContain('No packages were installed.')
         ->assertExitCode(0);
 
     expect($commands)->toBe([]);

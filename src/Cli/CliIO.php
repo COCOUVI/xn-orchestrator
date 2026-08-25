@@ -13,4 +13,10 @@ interface CliIO
     public function line(string $message): void;
 
     public function newLine(): void;
+
+    /**
+     * Prints a single-line status entry: the description, dot-padded to the
+     * terminal width, followed by a colored ✓ or ✗.
+     */
+    public function taskLine(string $description, bool $success): void;
 }

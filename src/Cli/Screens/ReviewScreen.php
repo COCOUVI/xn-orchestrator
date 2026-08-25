@@ -194,15 +194,15 @@ final class ReviewScreen implements ScreenHandler
     {
         foreach ($package->installSteps as $step) {
             if ($context->dryRun) {
-                $context->io->info("[DRY RUN] {$step}");
+                $context->io->taskLine("[DRY RUN] {$step}", true);
 
                 continue;
             }
 
             try {
-                $this->processRunner->runOrThrow($step, "Executing: {$step}");
+                $this->processRunner->runOrThrow($step, "Installing {$package->name}");
 
-                $context->io->info("  OK {$step}");
+                $context->io->taskLine($step, true);
 
                 Log::info('Package step executed', [
                     'package' => $package->name,
@@ -210,7 +210,7 @@ final class ReviewScreen implements ScreenHandler
                     'status' => 'success',
                 ]);
             } catch (PackageInstallationException $exception) {
-                $context->io->error("  FAILED {$step}");
+                $context->io->taskLine($step, false);
                 $context->io->error($exception->getMessage());
 
                 Log::error('Package step failed', [
@@ -225,15 +225,11 @@ final class ReviewScreen implements ScreenHandler
         }
 
         if ($context->dryRun) {
-            $context->io->info("  [{$package->name}] would be installed successfully (dry-run).");
-
             Log::info('Package dry-run completed', [
                 'package' => $package->name,
                 'status' => 'completed',
             ]);
         } else {
-            $context->io->info("  {$package->name} installed successfully.");
-
             $installed[] = $package->name;
 
             Log::info('Package installed successfully', [
@@ -271,18 +267,33 @@ final class ReviewScreen implements ScreenHandler
     private function displaySummary(CliContext $context, array $installed, array $failed): void
     {
         $context->io->newLine();
-        $context->io->info('Installation summary:');
+
+        if ($installed === [] && $failed === []) {
+            $context->io->info('No packages were installed.');
+
+            return;
+        }
+
+        $context->io->line($failed === []
+            ? '  <fg=green;options=bold>✓</> Installation completed successfully!'
+            : '  <fg=red;options=bold>✗</> Installation finished with errors.');
 
         if ($installed !== []) {
-            $context->io->info('  Installed: '.implode(', ', $installed));
+            $context->io->newLine();
+            $context->io->line('  Installed:');
+
+            foreach ($installed as $name) {
+                $context->io->line("    <fg=gray>•</> {$name}");
+            }
         }
 
         if ($failed !== []) {
-            $context->io->info('  Failed: '.implode(', ', $failed));
-        }
+            $context->io->newLine();
+            $context->io->line('  Failed:');
 
-        if ($installed === [] && $failed === []) {
-            $context->io->info('  No packages were installed.');
+            foreach ($failed as $name) {
+                $context->io->line("    <fg=red>•</> {$name}");
+            }
         }
 
         $context->io->newLine();

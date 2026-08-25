@@ -4,6 +4,7 @@ namespace Xn\Orchestrator\Cli;
 
 use Illuminate\Console\OutputStyle;
 use Illuminate\Console\View\Components\Factory;
+use Symfony\Component\Console\Terminal;
 
 final class CommandCliIO implements CliIO
 {
@@ -37,5 +38,17 @@ final class CommandCliIO implements CliIO
     public function newLine(): void
     {
         $this->output->newLine(1);
+    }
+
+    public function taskLine(string $description, bool $success): void
+    {
+        $width = min((new Terminal)->getWidth(), 150);
+        $dots = max($width - mb_strlen($description) - 6, 0);
+
+        $this->output->write("  {$description} ");
+        $this->output->write(str_repeat('<fg=gray>.</>', $dots));
+        $this->output->writeln($success
+            ? ' <fg=green;options=bold>✓</>'
+            : ' <fg=red;options=bold>✗</>');
     }
 }
