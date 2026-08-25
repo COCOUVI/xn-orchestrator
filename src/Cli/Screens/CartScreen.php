@@ -22,7 +22,7 @@ final class CartScreen implements ScreenHandler
             $choice = select(
                 label: 'Select a package to remove',
                 options: [...$context->cart->names(), self::BACK],
-                hint: "↑/↓ Navigate   Enter Select",
+                hint: '↑/↓ Navigate   Enter Select',
             );
 
             if ($choice === self::BACK) {

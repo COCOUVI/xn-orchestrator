@@ -37,7 +37,7 @@ final class PackageScreen implements ScreenHandler
             label: 'Select packages',
             options: $options,
             default: $this->previouslySelected($context, $packages),
-            hint: "↑/↓ Navigate   Space Toggle   Enter Confirm",
+            hint: '↑/↓ Navigate   Space Toggle   Enter Confirm',
         );
 
         $this->syncCart($context, $packages, $selected);
