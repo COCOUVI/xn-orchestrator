@@ -4,6 +4,21 @@ use Laravel\Prompts\Key;
 use Laravel\Prompts\Prompt;
 use Xn\Orchestrator\Cli\Support\EscapablePrompts;
 
+beforeEach(function () {
+    // Illuminate\Console\Concerns\ConfiguresPrompts sets Prompt::$shouldFallback
+    // to true (one-way, never reset) the moment any Artisan command runs under
+    // tests, since Application::runningUnitTests() is always true there. Other
+    // test files in this suite do run real commands via $this->artisan(...),
+    // and that pollutes this static flag for the rest of the process — which
+    // would make Prompt::fake() below silently fall back to Symfony's
+    // ConfirmationQuestion/ChoiceQuestion instead of the faked interactive
+    // terminal. Force it back off so these tests exercise the real prompt loop
+    // regardless of what ran earlier or Pest's random test order.
+    $property = new ReflectionProperty(Prompt::class, 'shouldFallback');
+    $property->setAccessible(true);
+    $property->setValue(null, false);
+});
+
 it('returns null instead of crashing when escape is pressed before any search results are highlighted', function () {
     Prompt::fake([Key::ESCAPE]);
 
