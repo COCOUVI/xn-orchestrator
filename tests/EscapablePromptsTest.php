@@ -6,6 +6,12 @@ use Xn\Orchestrator\Cli\Support\EscapablePrompts;
 
 
 beforeEach(function () {
+    // Laravel Prompts hard-blocks Windows unconditionally (Prompt::checkEnvironment()),
+    // even under Prompt::fake() for tests, so these can never run there.
+    if (PHP_OS_FAMILY === 'Windows') {
+        $this->markTestSkipped('Laravel Prompts does not support Windows, even under Prompt::fake().');
+    }
+
     // Illuminate\Console\Concerns\ConfiguresPrompts sets Prompt::$shouldFallback
     // to true (one-way, never reset) the moment any Artisan command runs under
     // tests, since Application::runningUnitTests() is always true there. Other
