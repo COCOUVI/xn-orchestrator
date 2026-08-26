@@ -262,7 +262,7 @@ final class ReviewScreen implements ScreenHandler
         $context->io->newLine();
 
         if ($installed !== []) {
-            $context->io->line("<fg=green;options=bold>✓</> Installation(s) terminée(s) avec succès !");
+            $context->io->line('<fg=green;options=bold>✓</> Installation(s) terminée(s) avec succès !');
 
             foreach ($installed as $name) {
                 $context->io->line("  - {$name}");
@@ -272,7 +272,7 @@ final class ReviewScreen implements ScreenHandler
         if ($failed !== []) {
             $context->io->newLine();
 
-            $context->io->line("<fg=red;options=bold>✗</> Installation terminée avec erreurs :");
+            $context->io->line('<fg=red;options=bold>✗</> Installation terminée avec erreurs :');
 
             foreach ($failed as $name) {
                 $context->io->line("  - {$name}");

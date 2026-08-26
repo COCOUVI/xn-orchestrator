@@ -7,6 +7,7 @@ use Xn\Orchestrator\Cli\CliContext;
 use Xn\Orchestrator\Cli\Screen;
 use Xn\Orchestrator\Cli\ScreenHandler;
 use Xn\Orchestrator\Cli\ScreenResult;
+
 use function Laravel\Prompts\multiselect;
 
 final class PackageScreen implements ScreenHandler
@@ -30,7 +31,7 @@ final class PackageScreen implements ScreenHandler
 
             $options[$package->name] = $context->compatibility->isCompatible($package)
                 ? $package->name
-                : $package->name . ' (incompatible)';
+                : $package->name.' (incompatible)';
         }
 
         if ($options === []) {

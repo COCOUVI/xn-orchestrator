@@ -33,6 +33,7 @@ final class InstallerSession
 
             if ($result->backToScreen !== null) {
                 $current = $result->backToScreen;
+
                 continue;
             }
 
