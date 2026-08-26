@@ -7,7 +7,6 @@ use Xn\Orchestrator\Cli\CliContext;
 use Xn\Orchestrator\Cli\Screen;
 use Xn\Orchestrator\Cli\ScreenHandler;
 use Xn\Orchestrator\Cli\ScreenResult;
-
 use function Laravel\Prompts\select;
 
 final class CategoriesScreen implements ScreenHandler
@@ -26,11 +25,15 @@ final class CategoriesScreen implements ScreenHandler
         $category = select(
             label: 'Select a category',
             options: [...$categories, self::BACK],
-            hint: '↑/↓ Navigate   Enter Select',
+            hint: '↑/↓ Navigate   Enter Select   Esc Back',
         );
 
+        if ($category === null) {
+            return ScreenResult::backTo(Screen::Menu);
+        }
+
         if ($category === self::BACK) {
-            return ScreenResult::goto(Screen::Menu);
+            return ScreenResult::backTo(Screen::Menu);
         }
 
         return ScreenResult::goto(Screen::Packages, $category);

@@ -6,7 +6,6 @@ use Xn\Orchestrator\Cli\CliContext;
 use Xn\Orchestrator\Cli\Screen;
 use Xn\Orchestrator\Cli\ScreenHandler;
 use Xn\Orchestrator\Cli\ScreenResult;
-
 use function Laravel\Prompts\select;
 
 final class MainMenuScreen implements ScreenHandler
@@ -32,8 +31,12 @@ final class MainMenuScreen implements ScreenHandler
         $choice = select(
             label: 'Main Menu',
             options: [self::BROWSE, self::SEARCH, self::CART, self::INSTALL, self::QUIT],
-            hint: '↑/↓ Navigate   Enter Select',
+            hint: '↑/↓ Navigate   Enter Select   Esc Exit',
         );
+
+        if ($choice === null) {
+            return ScreenResult::success();
+        }
 
         return match ($choice) {
             self::BROWSE => ScreenResult::goto(Screen::Categories),

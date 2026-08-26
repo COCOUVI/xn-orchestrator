@@ -7,7 +7,6 @@ use Xn\Orchestrator\Cli\CliContext;
 use Xn\Orchestrator\Cli\Screen;
 use Xn\Orchestrator\Cli\ScreenHandler;
 use Xn\Orchestrator\Cli\ScreenResult;
-
 use function Laravel\Prompts\multiselect;
 
 final class PackageScreen implements ScreenHandler
@@ -22,38 +21,6 @@ final class PackageScreen implements ScreenHandler
             return ScreenResult::goto(Screen::Categories);
         }
 
-        $options = $this->options($context, $packages);
-
-        if ($options === []) {
-            $context->io->info("No compatible packages in {$category}.");
-
-            return ScreenResult::goto(Screen::Categories);
-        }
-
-        $context->io->line($category);
-        $context->io->newLine();
-
-        $selected = multiselect(
-            label: 'Select packages',
-            options: $options,
-            default: $this->previouslySelected($context, $packages),
-            hint: '↑/↓ Navigate   Space Toggle   Enter Confirm',
-        );
-
-        $this->syncCart($context, $packages, $selected);
-
-        $count = $context->cart->count();
-        $context->io->info("{$count} package".($count > 1 ? 's' : '').' selected');
-
-        return ScreenResult::goto(Screen::Categories);
-    }
-
-    /**
-     * @param  list<PackageDefinition>  $packages
-     * @return array<string, string>
-     */
-    private function options(CliContext $context, array $packages): array
-    {
         $options = [];
 
         foreach ($packages as $package) {
@@ -63,23 +30,32 @@ final class PackageScreen implements ScreenHandler
 
             $options[$package->name] = $context->compatibility->isCompatible($package)
                 ? $package->name
-                : $package->name.' (incompatible)';
+                : $package->name . ' (incompatible)';
         }
 
-        return $options;
-    }
+        if ($options === []) {
+            $context->io->info("No compatible packages in {$category}.");
 
-    /**
-     * @param  list<PackageDefinition>  $packages
-     * @return list<string>
-     */
-    private function previouslySelected(CliContext $context, array $packages): array
-    {
-        return collect($packages)
-            ->pluck('name')
-            ->filter(fn (string $name) => $context->cart->has($name))
-            ->values()
-            ->all();
+            return ScreenResult::goto(Screen::Categories);
+        }
+
+        $selected = multiselect(
+            label: "Select packages in {$category}",
+            options: $options,
+            default: [],
+            hint: '↑/↓ Navigate   Enter Select   Esc Back',
+        );
+
+        if ($selected === null) {
+            return ScreenResult::backTo(Screen::Categories);
+        }
+
+        $this->syncCart($context, $packages, array_keys($selected));
+
+        $count = $context->cart->count();
+        $context->io->info("{$count} package".($count > 1 ? 's' : '').' selected');
+
+        return ScreenResult::goto(Screen::Categories);
     }
 
     /**
