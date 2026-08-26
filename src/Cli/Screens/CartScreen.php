@@ -7,26 +7,23 @@ use Xn\Orchestrator\Cli\CliContext;
 use Xn\Orchestrator\Cli\Screen;
 use Xn\Orchestrator\Cli\ScreenHandler;
 use Xn\Orchestrator\Cli\ScreenResult;
-
-use function Laravel\Prompts\select;
+use Xn\Orchestrator\Cli\Support\EscapablePrompts;
 
 final class CartScreen implements ScreenHandler
 {
-    private const BACK = 'Back to main menu';
-
     public function handle(CliContext $context, ?string $payload = null): ScreenResult
     {
         while ($context->cart->count() > 0) {
             $this->renderSummary($context);
 
-            $choice = select(
+            $choice = EscapablePrompts::select(
                 label: 'Select a package to remove',
-                options: [...$context->cart->names(), self::BACK],
-                hint: '↑/↓ Navigate   Enter Select',
+                options: $context->cart->names(),
+                hint: '↑/↓ Navigate   Enter Select   Esc Back',
             );
 
-            if ($choice === self::BACK) {
-                return ScreenResult::goto(Screen::Menu);
+            if ($choice === null) {
+                return ScreenResult::backTo(Screen::Menu);
             }
 
             $context->cart->remove($choice);
@@ -35,7 +32,7 @@ final class CartScreen implements ScreenHandler
 
         $context->io->info('Your cart is empty.');
 
-        return ScreenResult::goto(Screen::Menu);
+        return ScreenResult::backTo(Screen::Menu);
     }
 
     private function renderSummary(CliContext $context): void

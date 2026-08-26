@@ -8,13 +8,18 @@ use Xn\Orchestrator\Cli\CliContext;
 use Xn\Orchestrator\Cli\Screen;
 use Xn\Orchestrator\Cli\ScreenHandler;
 use Xn\Orchestrator\Cli\ScreenResult;
+use Xn\Orchestrator\Cli\Support\EscapablePrompts;
 use Xn\Orchestrator\Exceptions\CircularDependencyException;
 use Xn\Orchestrator\Exceptions\PackageInstallationException;
 use Xn\Orchestrator\Support\DependencyResolver;
 use Xn\Orchestrator\Support\ProcessRunner;
 
+use function Laravel\Prompts\confirm;
+
 final class ReviewScreen implements ScreenHandler
 {
+    private const CONFIRM_HINT = '↑/↓ Navigate   Enter Select   Esc Back';
+
     public function __construct(
         private readonly DependencyResolver $resolver,
         private readonly ProcessRunner $processRunner,
@@ -32,15 +37,13 @@ final class ReviewScreen implements ScreenHandler
             return ScreenResult::goto(Screen::Menu);
         }
 
-        $this->displayRecap($context);
-
         if (! $this->confirmCompatibility($context)) {
             $context->io->info('Installation cancelled.');
 
             return ScreenResult::backTo(Screen::Packages);
         }
 
-        if (! confirm('Proceed with installation?')) {
+        if (EscapablePrompts::confirm('Proceed with installation?', hint: self::CONFIRM_HINT) !== true) {
             $context->io->info('Installation cancelled.');
 
             return ScreenResult::backTo(Screen::Packages);
@@ -124,13 +127,6 @@ final class ReviewScreen implements ScreenHandler
         return true;
     }
 
-    private function displayRecap(CliContext $context): void
-    {
-        $context->io->newLine();
-        $context->io->info("Installation de {$context->cart->all()[0]->name} et autres packages...");
-        $context->io->newLine();
-    }
-
     private function confirmCompatibility(CliContext $context): bool
     {
         $incompatible = collect($context->cart->all())
@@ -149,7 +145,7 @@ final class ReviewScreen implements ScreenHandler
             $context->io->warn("  - {$name}");
         }
 
-        return confirm('Install incompatible packages anyway?');
+        return EscapablePrompts::confirm('Install incompatible packages anyway?', hint: self::CONFIRM_HINT) === true;
     }
 
     private function execute(CliContext $context): ScreenResult
@@ -176,17 +172,15 @@ final class ReviewScreen implements ScreenHandler
 
     private function installPackage(CliContext $context, PackageDefinition $package, array &$installed): bool
     {
+        $label = $context->dryRun ? "Installing {$package->name} [DRY RUN]" : "Installing {$package->name}";
+
         foreach ($package->installSteps as $step) {
             if ($context->dryRun) {
-                $context->io->info("Installation en mode dry-run de {$package->name}.");
-
                 continue;
             }
 
             try {
-                $this->processRunner->runOrThrow($step, "Installing {$package->name}");
-
-                $context->io->info("✓ {$package->name} installé avec succès.");
+                $this->processRunner->runOrThrow($step, $label);
 
                 Log::info('Package step executed', [
                     'package' => $package->name,
@@ -194,8 +188,7 @@ final class ReviewScreen implements ScreenHandler
                     'status' => 'success',
                 ]);
             } catch (PackageInstallationException $exception) {
-                $context->io->info("✗ {$package->name} a échoué.");
-
+                $context->io->taskLine($label, false);
                 $context->io->error($exception->getMessage());
 
                 Log::error('Package step failed', [
@@ -208,6 +201,8 @@ final class ReviewScreen implements ScreenHandler
                 return false;
             }
         }
+
+        $context->io->taskLine($label, true);
 
         if ($context->dryRun) {
             Log::info('Package dry-run completed', [
@@ -254,28 +249,30 @@ final class ReviewScreen implements ScreenHandler
         $context->io->newLine();
 
         if ($installed === [] && $failed === []) {
-            $context->io->info('Aucun package n\'a été installé.');
+            $context->io->info('No packages were installed.');
 
             return;
         }
 
-        $context->io->newLine();
+        $context->io->line($failed === []
+            ? '  <fg=green;options=bold>✓</> Installation completed successfully!'
+            : '  <fg=red;options=bold>✗</> Installation finished with errors.');
 
         if ($installed !== []) {
-            $context->io->line("<fg=green;options=bold>✓</> Installation(s) terminée(s) avec succès !");
+            $context->io->newLine();
+            $context->io->line('  Installed:');
 
             foreach ($installed as $name) {
-                $context->io->line("  - {$name}");
+                $context->io->line("    <fg=gray>•</> {$name}");
             }
         }
 
         if ($failed !== []) {
             $context->io->newLine();
-
-            $context->io->line("<fg=red;options=bold>✗</> Installation terminée avec erreurs :");
+            $context->io->line('  Failed:');
 
             foreach ($failed as $name) {
-                $context->io->line("  - {$name}");
+                $context->io->line("    <fg=red>•</> {$name}");
             }
         }
 

@@ -7,7 +7,7 @@ use Xn\Orchestrator\Cli\CliContext;
 use Xn\Orchestrator\Cli\Screen;
 use Xn\Orchestrator\Cli\ScreenHandler;
 use Xn\Orchestrator\Cli\ScreenResult;
-use function Laravel\Prompts\multiselect;
+use Xn\Orchestrator\Cli\Support\EscapablePrompts;
 
 final class PackageScreen implements ScreenHandler
 {
@@ -30,7 +30,7 @@ final class PackageScreen implements ScreenHandler
 
             $options[$package->name] = $context->compatibility->isCompatible($package)
                 ? $package->name
-                : $package->name . ' (incompatible)';
+                : $package->name.' (incompatible)';
         }
 
         if ($options === []) {
@@ -39,7 +39,7 @@ final class PackageScreen implements ScreenHandler
             return ScreenResult::goto(Screen::Categories);
         }
 
-        $selected = multiselect(
+        $selected = EscapablePrompts::multiselect(
             label: "Select packages in {$category}",
             options: $options,
             default: [],
@@ -50,7 +50,7 @@ final class PackageScreen implements ScreenHandler
             return ScreenResult::backTo(Screen::Categories);
         }
 
-        $this->syncCart($context, $packages, array_keys($selected));
+        $this->syncCart($context, $packages, $selected);
 
         $count = $context->cart->count();
         $context->io->info("{$count} package".($count > 1 ? 's' : '').' selected');

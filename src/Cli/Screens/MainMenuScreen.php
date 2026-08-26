@@ -6,7 +6,7 @@ use Xn\Orchestrator\Cli\CliContext;
 use Xn\Orchestrator\Cli\Screen;
 use Xn\Orchestrator\Cli\ScreenHandler;
 use Xn\Orchestrator\Cli\ScreenResult;
-use function Laravel\Prompts\select;
+use Xn\Orchestrator\Cli\Support\EscapablePrompts;
 
 final class MainMenuScreen implements ScreenHandler
 {
@@ -28,7 +28,7 @@ final class MainMenuScreen implements ScreenHandler
         $context->io->info('XN Orchestrator');
         $context->io->line("{$count} package".($count > 1 ? 's' : '').' selected');
 
-        $choice = select(
+        $choice = EscapablePrompts::select(
             label: 'Main Menu',
             options: [self::BROWSE, self::SEARCH, self::CART, self::INSTALL, self::QUIT],
             hint: '↑/↓ Navigate   Enter Select   Esc Exit',

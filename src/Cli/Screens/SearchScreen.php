@@ -7,18 +7,21 @@ use Xn\Orchestrator\Cli\CliContext;
 use Xn\Orchestrator\Cli\Screen;
 use Xn\Orchestrator\Cli\ScreenHandler;
 use Xn\Orchestrator\Cli\ScreenResult;
-
-use function Laravel\Prompts\search;
+use Xn\Orchestrator\Cli\Support\EscapablePrompts;
 
 final class SearchScreen implements ScreenHandler
 {
     public function handle(CliContext $context, ?string $payload = null): ScreenResult
     {
-        $name = search(
+        $name = EscapablePrompts::search(
             label: 'Search for a package',
             options: fn (string $value) => $this->matches($context, $value),
-            hint: 'Type to filter   ↑/↓ Navigate   Enter Select',
+            hint: 'Type to filter   ↑/↓ Navigate   Enter Select   Esc Back',
         );
+
+        if ($name === null) {
+            return ScreenResult::backTo(Screen::Menu);
+        }
 
         $package = $context->catalog->findByName($name);
 

@@ -7,7 +7,7 @@ use Xn\Orchestrator\Cli\CliContext;
 use Xn\Orchestrator\Cli\Screen;
 use Xn\Orchestrator\Cli\ScreenHandler;
 use Xn\Orchestrator\Cli\ScreenResult;
-use function Laravel\Prompts\select;
+use Xn\Orchestrator\Cli\Support\EscapablePrompts;
 
 final class CategoriesScreen implements ScreenHandler
 {
@@ -22,7 +22,7 @@ final class CategoriesScreen implements ScreenHandler
             ->values()
             ->all();
 
-        $category = select(
+        $category = EscapablePrompts::select(
             label: 'Select a category',
             options: [...$categories, self::BACK],
             hint: '↑/↓ Navigate   Enter Select   Esc Back',

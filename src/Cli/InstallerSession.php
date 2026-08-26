@@ -2,6 +2,15 @@
 
 namespace Xn\Orchestrator\Cli;
 
+use Xn\Orchestrator\Cli\Screens\CartScreen;
+use Xn\Orchestrator\Cli\Screens\CategoriesScreen;
+use Xn\Orchestrator\Cli\Screens\MainMenuScreen;
+use Xn\Orchestrator\Cli\Screens\PackageScreen;
+use Xn\Orchestrator\Cli\Screens\ReviewScreen;
+use Xn\Orchestrator\Cli\Screens\SearchScreen;
+use Xn\Orchestrator\Support\DependencyResolver;
+use Xn\Orchestrator\Support\ProcessRunner;
+
 final class InstallerSession
 {
     private ?string $category = null;
@@ -33,6 +42,7 @@ final class InstallerSession
 
             if ($result->backToScreen !== null) {
                 $current = $result->backToScreen;
+
                 continue;
             }
 
