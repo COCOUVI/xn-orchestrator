@@ -12,10 +12,6 @@ final class MainMenuScreen implements ScreenHandler
 {
     private const BROWSE = 'Browse categories';
 
-    private const SEARCH = 'Search packages';
-
-    private const CART = 'View cart';
-
     private const INSTALL = 'Finish and install';
 
     private const QUIT = 'Quit';
@@ -30,7 +26,7 @@ final class MainMenuScreen implements ScreenHandler
 
         $choice = EscapablePrompts::select(
             label: 'Main Menu',
-            options: [self::BROWSE, self::SEARCH, self::CART, self::INSTALL, self::QUIT],
+            options: [self::BROWSE, self::INSTALL, self::QUIT],
             hint: '↑/↓ Navigate   Enter Select   Esc Exit',
         );
 
@@ -40,8 +36,6 @@ final class MainMenuScreen implements ScreenHandler
 
         return match ($choice) {
             self::BROWSE => ScreenResult::goto(Screen::Categories),
-            self::SEARCH => ScreenResult::goto(Screen::Search),
-            self::CART => ScreenResult::goto(Screen::Cart),
             self::INSTALL => ScreenResult::goto(Screen::Review),
             default => ScreenResult::success(),
         };

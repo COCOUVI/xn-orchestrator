@@ -13,7 +13,7 @@ use Xn\Orchestrator\Support\ProcessRunner;
 
 function mainMenu(): array
 {
-    return ['Browse categories', 'Search packages', 'View cart', 'Finish and install', 'Quit'];
+    return ['Browse categories', 'Finish and install', 'Quit'];
 }
 
 function categoriesMenu(array $categories): array
@@ -201,24 +201,6 @@ it('cancels the installation when the user declines and returns to the menu', fu
         ->assertExitCode(0);
 });
 
-it('removes a package from the grouped cart view', function () {
-    $this->app->instance(CatalogRepositoryInterface::class, fakeCatalog());
-    $this->app->instance(ProcessRunner::class, fakeRunner());
-
-    $this->artisan('x:install')
-        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
-        ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
-        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Main Menu', 'View cart', mainMenu())
-        ->expectsOutputToContain('Your cart')
-        ->expectsOutputToContain('Total: 1 package')
-        ->expectsChoice('Select a package to remove', 'laravel/sanctum', ['laravel/sanctum'])
-        ->expectsOutputToContain('Removed laravel/sanctum from the cart.')
-        ->expectsChoice('Main Menu', 'Quit', mainMenu())
-        ->assertExitCode(0);
-});
-
 it('shows a warning and exits cleanly when the catalog is empty', function () {
     $catalog = Mockery::mock(CatalogRepositoryInterface::class);
     $catalog->shouldReceive('getAll')->andReturn([]);
@@ -228,44 +210,6 @@ it('shows a warning and exits cleanly when the catalog is empty', function () {
     $this->artisan('x:install')
         ->expectsOutputToContain('The catalog is empty. Nothing to install.')
         ->assertExitCode(0);
-});
-
-it('searches by name or tags and adds the package to the cart', function () {
-    $catalog = Mockery::mock(CatalogRepositoryInterface::class);
-
-    $sanctum = new PackageDefinition(
-        name: 'laravel/sanctum',
-        category: 'Authentication',
-        tags: ['api', 'token'],
-        installSteps: ['echo installing sanctum'],
-    );
-
-    $debugger = new PackageDefinition(
-        name: 'debug/inspector',
-        category: 'Debugging',
-        tags: ['debug'],
-        installSteps: ['echo inspecting'],
-    );
-
-    $catalog->shouldReceive('getAll')->andReturn([$sanctum, $debugger]);
-    $catalog->shouldReceive('findByName')->with('laravel/sanctum')->andReturn($sanctum);
-    $catalog->shouldReceive('findByName')->with('debug/inspector')->andReturn($debugger);
-
-    $this->app->instance(CatalogRepositoryInterface::class, $catalog);
-
-    $commands = [];
-    $this->app->instance(ProcessRunner::class, recordedRunner($commands));
-
-    $this->artisan('x:install')
-        ->expectsChoice('Main Menu', 'Search packages', mainMenu())
-        ->expectsSearch('Search for a package', 'laravel/sanctum', 'token', ['laravel/sanctum'])
-        ->expectsOutputToContain('Added laravel/sanctum to the cart.')
-        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
-        ->expectsConfirmation('Proceed with installation?', 'yes')
-        ->expectsOutputToContain('Installing laravel/sanctum')
-        ->assertExitCode(0);
-
-    expect($commands)->toBe(['echo installing sanctum']);
 });
 
 it('blocks installation when the cart contains conflicting packages', function () {
