@@ -44,6 +44,14 @@ it('returns null when escape is pressed on a select prompt', function () {
     expect($result)->toBeNull();
 });
 
+it('does not render a submitted panel when escape is pressed', function () {
+    Prompt::fake([Key::ESCAPE]);
+
+    EscapablePrompts::select('Main Menu', ['Browse categories', 'Finish and install']);
+
+    expect(substr_count(Prompt::strippedContent(), 'Main Menu'))->toBe(1);
+});
+
 it('returns null when escape is pressed on a multiselect prompt', function () {
     Prompt::fake([Key::ESCAPE]);
 

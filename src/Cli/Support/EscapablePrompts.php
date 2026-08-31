@@ -9,7 +9,7 @@ use Laravel\Prompts\MultiSelectPrompt;
 use Laravel\Prompts\Prompt;
 use Laravel\Prompts\SearchPrompt;
 use Laravel\Prompts\SelectPrompt;
-use Throwable;
+use RuntimeException;
 
 /**
  * Thin wrappers around Laravel Prompts' select()/multiselect() that additionally
@@ -58,57 +58,30 @@ final class EscapablePrompts
      */
     private static function run(Prompt $prompt): mixed
     {
-        $escaped = self::arm($prompt);
-
         try {
-            $result = $prompt->prompt();
-        } catch (Throwable $exception) {
-            // Forcing submission on Escape steps outside states Prompts' own
-            // renderers assume are reachable (e.g. SearchPrompt rendering its
-            // "submit" box while nothing is highlighted yet). The result is
-            // discarded either way once escaped, so swallow the render crash
-            // rather than let an internal Prompts invariant break navigation.
-            if (! $escaped()) {
-                throw $exception;
-            }
+            self::arm($prompt);
 
-            $result = null;
+            return $prompt->prompt();
+        } catch (PromptEscaped) {
+            return null;
         }
-
-        return $escaped() ? null : $result;
     }
 
     /**
-     * Registers an Escape listener on the prompt and returns a closure that
-     * reports whether it fired.
+     * Registers an Escape listener that leaves the prompt without rendering a
+     * successful submission frame.
      */
-    private static function arm(Prompt $prompt): Closure
+    private static function arm(Prompt $prompt): void
     {
-        $escaped = false;
-
-        $prompt->on('key', function (string $key) use ($prompt, &$escaped): void {
+        $prompt->on('key', function (string $key): void {
             if ($key === Key::ESCAPE) {
-                $escaped = true;
-
-                // SearchPrompt treats an unrecognized key (including Escape) as
-                // "refresh search", which resets its internal matches cache to
-                // null, and defaults to no highlighted match. Repopulate both
-                // before forcing submission below where possible; any state
-                // Prompts still can't render is caught in run() above.
-                if ($prompt instanceof SearchPrompt) {
-                    $matches = $prompt->matches();
-
-                    if ($matches !== [] && $prompt->highlighted === null) {
-                        $prompt->highlighted = 0;
-                    }
-                }
-
-                $prompt->state = 'submit';
+                throw new PromptEscaped;
             }
         });
-
-        return function () use (&$escaped): bool {
-            return $escaped;
-        };
     }
+}
+
+/** @internal */
+final class PromptEscaped extends RuntimeException
+{
 }
