@@ -14,7 +14,7 @@ use Xn\Orchestrator\Support\ProcessRunner;
 
 class InstallCommand extends Command
 {
-    public $signature = 'x:install {--dry-run}';
+    public $signature = 'x:install';
 
     public $description = 'Install Laravel packages from the catalog through an interactive session';
 
@@ -35,7 +35,7 @@ class InstallCommand extends Command
             compatibility: $this->compatibility,
             io: new CommandCliIO($this->output),
             hideIncompatible: (bool) config('xn-orchestrator.compatibility.hide_incompatible', false),
-            dryRun: (bool) $this->option('dry-run'),
+            
         );
 
         return (new InstallerSession($context, $this->resolver, $this->processRunner))->run();

@@ -1,21 +1,17 @@
 # xn-orchestrator
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/cocouvi/xn-orchestrator.svg?style=flat-square)](https://packagist.org/packages/cocouvi/xn-orchestrator)
-[![GitHub Tests Action Status](https://github.com/cocouvi/xn-orchestrator/actions/workflows/run-tests.yml/badge.svg)](https://github.com/cocouvi/xn-orchestrator/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://github.com/cocouvi/xn-orchestrator/actions/workflows/fix-php-code-style-issues.yml/badge.svg)](https://github.com/cocouvi/xn-orchestrator/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/cocouvi/xn-orchestrator.svg?style=flat-square)](https://packagist.org/packages/cocouvi/xn-orchestrator)
-
 Install and configure Laravel packages from a community-driven catalog directly from the CLI.
 
-Browse categories, search packages, build an installation cart, resolve dependencies automatically, check Laravel/PHP compatibility, then install everything with a recap of each command.
+Browse package categories, build an installation cart, resolve dependencies, check Laravel/PHP compatibility, then run the selected installation steps.
 
 ## Features
 
-- **Interactive installer** — browse by category or search by name/tags, accumulate packages in a cart across selections
+- **Interactive installer** — browse by category and accumulate packages in a cart across selections
 - **YAML-driven catalog** — one file per package, easy to read and contribute; no PHP required to add entries
 - **Dependency resolution** — missing `depends_on` packages are offered before installation, `conflicts_with` blocks incompatible combinations, circular dependencies are detected
 - **Compatibility checks** — packages are tagged `⚠ incompatible` when they do not support your current Laravel or PHP version (or hidden entirely via config), with an explicit confirmation before forcing the install
-- **Dry run & rollback** — preview every command without executing it (`--dry-run`); a failing step stops the run instead of leaving a half-installed state
+- **Dry run** — simulate the installation without executing package commands
+- **Failure reporting** — a failing step stops the installation and reports the affected packages
 - **Install logging** — installations are recorded in a dedicated log channel for auditing what was run and when
 
 ## Installation
@@ -34,18 +30,19 @@ Start the interactive installer:
 php artisan x:install
 ```
 
-Preview the full plan without executing anything:
+Simulate the installation without executing its commands:
 
 ```bash
-php artisan x:install --dry-run
+php artisan x:install
 ```
 
 The main menu lets you:
 
-1. **Browse the catalog** — pick a category, multi-select packages
-2. **Search packages** — find packages by composer name or tag keywords
-3. **View cart** — review and remove selected packages
-4. **Finish and install** — resolve dependencies, display the ordered installation plan, confirm, execute
+1. **Browse categories** — choose a category, select packages, then press `Enter` to add them to the cart
+2. **Finish and install** — resolve dependencies, confirm compatibility when needed, then execute the selected package steps
+3. **Quit** — leave the installer
+
+Press `Esc` to go back or exit. `Esc` cancels the current package selection; use `Enter` to save the checked packages first. The menu always displays the current number of selected packages.
 
 Before running, missing dependencies are offered automatically, conflicting packages block the installation, and incompatible packages require explicit confirmation.
 
@@ -88,7 +85,7 @@ Adding a package to the catalog is a single YAML file. Schema:
 ```yaml
 name: spatie/laravel-permission      # composer package name (required)
 category: Authorization              # category shown in the menu (required)
-tags: [roles, permissions, acl]      # search keywords
+tags: [roles, permissions, acl]      # package metadata
 install:                             # commands executed in order (required)
   - 'composer require spatie/laravel-permission'
   - 'php artisan vendor:publish --provider="Spatie\Permission\PermissionServiceProvider"'
@@ -145,14 +142,6 @@ composer test
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
-
-## Contributing
-
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
 
 ## Credits
 
