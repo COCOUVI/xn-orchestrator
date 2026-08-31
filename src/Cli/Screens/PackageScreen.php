@@ -67,8 +67,6 @@ final class PackageScreen implements ScreenHandler
         foreach ($packages as $package) {
             if (in_array($package->name, $selected, true)) {
                 $context->cart->add($package);
-            } else {
-                $context->cart->remove($package->name);
             }
         }
     }
