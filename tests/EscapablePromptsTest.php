@@ -4,7 +4,6 @@ use Laravel\Prompts\Key;
 use Laravel\Prompts\Prompt;
 use Xn\Orchestrator\Cli\Support\EscapablePrompts;
 
-
 beforeEach(function () {
     // Laravel Prompts hard-blocks Windows unconditionally (Prompt::checkEnvironment()),
     // even under Prompt::fake() for tests, so these can never run there.
