@@ -157,11 +157,9 @@ final class ReviewScreen implements ScreenHandler
             if (! $this->installPackage($context, $package, $installed)) {
                 $failedPackages[] = $package->name;
 
-                if (! $context->dryRun) {
-                    $this->rollback($context, $installed, $failedPackages);
+                $this->rollback($context, $installed, $failedPackages);
 
-                    return ScreenResult::failure();
-                }
+                return ScreenResult::failure();
             }
         }
 
@@ -172,12 +170,9 @@ final class ReviewScreen implements ScreenHandler
 
     private function installPackage(CliContext $context, PackageDefinition $package, array &$installed): bool
     {
-        $label = $context->dryRun ? "Installing {$package->name} [DRY RUN]" : "Installing {$package->name}";
+        $label = "Installing {$package->name}";
 
         foreach ($package->installSteps as $step) {
-            if ($context->dryRun) {
-                continue;
-            }
 
             try {
                 $this->processRunner->runOrThrow($step, $label);
@@ -204,19 +199,12 @@ final class ReviewScreen implements ScreenHandler
 
         $context->io->taskLine($label, true);
 
-        if ($context->dryRun) {
-            Log::info('Package dry-run completed', [
-                'package' => $package->name,
-                'status' => 'completed',
-            ]);
-        } else {
-            $installed[] = $package->name;
+        $installed[] = $package->name;
 
-            Log::info('Package installed successfully', [
+        Log::info('Package installed successfully', [
                 'package' => $package->name,
                 'status' => 'installed',
             ]);
-        }
 
         return true;
     }

@@ -14,6 +14,5 @@ final class CliContext
         public readonly CompatibilityChecker $compatibility,
         public readonly CliIO $io,
         public readonly bool $hideIncompatible,
-        public readonly bool $dryRun,
     ) {}
 }

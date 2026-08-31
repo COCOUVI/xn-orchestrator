@@ -1,8 +1,6 @@
 # xn-orchestrator
 
-Install and configure Laravel packages from a community-driven catalog directly from the CLI.
-
-Browse package categories, build an installation cart, resolve dependencies, check Laravel/PHP compatibility, then run the selected installation steps.
+Install and configure Laravel packages from a catalog directly from the CLI.
 
 ## Features
 
@@ -30,12 +28,6 @@ Start the interactive installer:
 php artisan x:install
 ```
 
-Simulate the installation without executing its commands:
-
-```bash
-php artisan x:install
-```
-
 The main menu lets you:
 
 1. **Browse categories** — choose a category, select packages, then press `Enter` to add them to the cart
@@ -44,7 +36,7 @@ The main menu lets you:
 
 Press `Esc` to go back or exit. `Esc` cancels the current package selection; use `Enter` to save the checked packages first. The menu always displays the current number of selected packages.
 
-Before running, missing dependencies are offered automatically, conflicting packages block the installation, and incompatible packages require explicit confirmation.
+
 
 ## The catalog
 
