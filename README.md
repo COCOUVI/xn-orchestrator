@@ -60,16 +60,6 @@ The bundled catalog ships 24 essential packages across 15 categories:
 | Search | laravel/scout |
 | Testing | pestphp/pest, laravel/dusk |
 
-## Overriding the catalog
-
-Publish the catalog files into your application to customize them or hide entries you never use:
-
-```bash
-php artisan vendor:publish --tag=package-catalog
-```
-
-Then point the package to your own directory (see [Configuration](#configuration)).
-
 ## Contributing packages
 
 Adding a package to the catalog is a single YAML file. Schema:
