@@ -89,32 +89,6 @@ php artisan x:catalog:validate resources/catalog
 
 Invalid or malformed files are skipped with a warning at load time, so one broken entry never breaks the whole catalog — but they will be reported by the validator.
 
-## Configuration
-
-Publish the config file:
-
-```bash
-php artisan vendor:publish --tag="xn-orchestrator-config"
-```
-
-```php
-return [
-    // Directory holding the YAML catalog. Null = the package's own copy.
-    'catalog_path' => null,
-
-    // true = incompatible packages are hidden from menus.
-    // false (default) = shown with an "⚠ incompatible" marker + confirmation.
-    'compatibility' => [
-        'hide_incompatible' => false,
-    ],
-
-    // Dedicated log channel for installation runs.
-    'logging' => [
-        'channel' => 'package-orchestrator',
-    ],
-];
-```
-
 ## Testing
 
 ```bash
