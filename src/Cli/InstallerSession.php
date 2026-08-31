@@ -43,10 +43,6 @@ final class InstallerSession
             if ($result->backToScreen !== null) {
                 $current = $result->backToScreen;
 
-                if ($result->backToScreen === Screen::Menu) {
-                    $this->category = null;
-                }
-
                 continue;
             }
 
