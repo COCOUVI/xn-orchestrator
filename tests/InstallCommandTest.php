@@ -533,3 +533,21 @@ it('warns when finishing with an empty cart', function () {
     expect($code)->toBe(0)
         ->and(str_contains($tester->getDisplay(), 'Your cart is empty. Add packages first.'))->toBeTrue();
 });
+
+it('preserves installer state after returning to main menu', function () {
+    $this->app->instance(CatalogRepositoryInterface::class, fakeCatalog());
+    $this->app->instance(ProcessRunner::class, fakeRunner());
+
+    $this->artisan('x:install')
+        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
+        ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
+        ->expectsOutputToContain('1 package selected')
+        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
+        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
+        ->expectsConfirmation('Proceed with installation?', 'yes')
+        ->expectsOutputToContain('Installing laravel/sanctum')
+        ->expectsOutputToContain('Installation completed successfully!')
+        ->expectsOutputToContain('laravel/sanctum')
+        ->assertExitCode(0);
+});
