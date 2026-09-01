@@ -82,6 +82,4 @@ final class EscapablePrompts
 }
 
 /** @internal */
-final class PromptEscaped extends RuntimeException
-{
-}
+final class PromptEscaped extends RuntimeException {}

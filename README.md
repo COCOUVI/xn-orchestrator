@@ -3,6 +3,9 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/cocouvi/xn-orchestrator.svg?style=flat-square)](https://packagist.org/packages/cocouvi/xn-orchestrator)
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/status/cocouvi/xn-orchestrator?style=flat-square)](https://github.com/cocouvi/xn-orchestrator/actions)
 [![Total Downloads](https://img.shields.io/packagist/dt/cocouvi/xn-orchestrator.svg?style=flat-square)](https://packagist.org/packages/cocouvi/xn-orchestrator)
+[![PHPStan Status](https://img.shields.io/badge/phpstan-enabled-brightgreen?style=flat-square)](https://github.com/cocouvi/xn-orchestrator/blob/main/phpstan.neon.dist)
+[![Pint Code Style](https://img.shields.io/badge/pint-enabled-brightgreen?style=flat-square)](https://github.com/cocouvi/xn-orchestrator/blob/main/.phpunit.cache)
+[![Pest Tests](https://img.shields.io/badge/pest-enabled-brightgreen?style=flat-square)](https://github.com/cocouvi/xn-orchestrator/actions)
 
 Install and configure Laravel packages from a catalog directly from the CLI.
 
@@ -12,7 +15,7 @@ Install and configure Laravel packages from a catalog directly from the CLI.
 - **YAML-driven catalog** — one file per package, easy to read and contribute; no PHP required to add entries
 - **Dependency resolution** — missing `depends_on` packages are offered before installation, `conflicts_with` blocks incompatible combinations, circular dependencies are detected
 - **Compatibility checks** — packages are tagged `⚠ incompatible` when they do not support your current Laravel or PHP version (or hidden entirely via config), with an explicit confirmation before forcing the install
-- **Dry run** — simulate the installation without executing package commands
+
 - **Failure reporting** — a failing step stops the installation and reports the affected packages
 - **Install logging** — installations are recorded in a dedicated log channel for auditing what was run and when
 

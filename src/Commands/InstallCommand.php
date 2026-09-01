@@ -35,7 +35,7 @@ class InstallCommand extends Command
             compatibility: $this->compatibility,
             io: new CommandCliIO($this->output),
             hideIncompatible: (bool) config('xn-orchestrator.compatibility.hide_incompatible', false),
-            
+
         );
 
         return (new InstallerSession($context, $this->resolver, $this->processRunner))->run();

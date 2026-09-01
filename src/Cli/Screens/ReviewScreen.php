@@ -202,9 +202,9 @@ final class ReviewScreen implements ScreenHandler
         $installed[] = $package->name;
 
         Log::info('Package installed successfully', [
-                'package' => $package->name,
-                'status' => 'installed',
-            ]);
+            'package' => $package->name,
+            'status' => 'installed',
+        ]);
 
         return true;
     }

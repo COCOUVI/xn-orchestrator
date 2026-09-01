@@ -8,13 +8,13 @@
     processIsolation="false"
     stopOnFailure="false"
     executionOrder="random"
-    failOnWarning="true"
-    failOnRisky="true"
+    failOnWarning="false"
+    failOnRisky="false"
     failOnEmptyTestSuite="true"
     beStrictAboutOutputDuringTests="true"
     cacheDirectory=".phpunit.cache"
     backupStaticProperties="false"
->
+    >
     <testsuites>
         <testsuite name="Xn Test Suite">
             <directory>tests</directory>

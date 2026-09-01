@@ -482,26 +482,6 @@ it('reports when no compatible packages exist in a category', function () {
         ->assertExitCode(0);
 });
 
-it('previews every step without running commands in dry-run mode', function () {
-    $this->app->instance(CatalogRepositoryInterface::class, fakeCatalog());
-
-    $commands = [];
-    $this->app->instance(ProcessRunner::class, recordedRunner($commands));
-
-    $this->artisan('x:install', ['--dry-run' => true])
-        ->expectsChoice('Main Menu', 'Browse categories', mainMenu())
-        ->expectsChoice('Select a category', 'Authentication', categoriesMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Select packages in Authentication', ['laravel/sanctum'], AUTH_PACKAGES())
-        ->expectsChoice('Select a category', 'Back to main menu', categoriesMenu(['Authentication', 'Debugging']))
-        ->expectsChoice('Main Menu', 'Finish and install', mainMenu())
-        ->expectsConfirmation('Proceed with installation?', 'yes')
-        ->expectsOutputToContain('Installing laravel/sanctum [DRY RUN]')
-        ->expectsOutputToContain('No packages were installed.')
-        ->assertExitCode(0);
-
-    expect($commands)->toBe([]);
-});
-
 it('warns when finishing with an empty cart', function () {
     $catalog = Mockery::mock(CatalogRepositoryInterface::class);
 
