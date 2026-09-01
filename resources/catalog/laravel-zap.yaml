@@ -1,0 +1,12 @@
+name: laraveljutsu/zap
+category: Scheduling
+tags: [calendar, schedule, booking, appointments, availability]
+install:
+  - 'composer require laraveljutsu/zap'
+  - 'php artisan vendor:publish --provider="Zap\ZapServiceProvider"'
+  - 'php artisan migrate'
+supported:
+  laravel: ['^13.0']
+  php: '>=8.2 <8.6'
+depends_on: []
+conflicts_with: []
