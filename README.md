@@ -1,7 +1,7 @@
 # xn-orchestrator
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/cocouvi/xn-orchestrator.svg?style=flat-square)](https://packagist.org/packages/cocouvi/xn-orchestrator)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/status/cocouvi/xn-orchestrator?style=flat-square)](https://github.com/cocouvi/xn-orchestrator/actions)
+[![GitHub Tests Action Status](https://github.com/COCOUVI/xn-orchestrator/actions/workflows/run-tests.yml/badge.svg)](https://github.com/COCOUVI/xn-orchestrator/actions?query=workflow%3Arun-tests+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/cocouvi/xn-orchestrator.svg?style=flat-square)](https://packagist.org/packages/cocouvi/xn-orchestrator)
 [![PHPStan Status](https://img.shields.io/badge/phpstan-enabled-brightgreen?style=flat-square)](https://github.com/cocouvi/xn-orchestrator/blob/main/phpstan.neon.dist)
 [![Pint Code Style](https://img.shields.io/badge/pint-enabled-brightgreen?style=flat-square)](https://github.com/cocouvi/xn-orchestrator/blob/main/.phpunit.cache)
@@ -11,13 +11,13 @@ Install and configure Laravel packages from a catalog directly from the CLI.
 
 ## Features
 
-- **Interactive installer** — browse by category and accumulate packages in a cart across selections
-- **YAML-driven catalog** — one file per package, easy to read and contribute; no PHP required to add entries
-- **Dependency resolution** — missing `depends_on` packages are offered before installation, `conflicts_with` blocks incompatible combinations, circular dependencies are detected
-- **Compatibility checks** — packages are tagged `⚠ incompatible` when they do not support your current Laravel or PHP version (or hidden entirely via config), with an explicit confirmation before forcing the install
+- **Interactive installer** : browse by category and accumulate packages in a cart across selections
+- **YAML-driven catalog** : one file per package, easy to read and contribute; no PHP required to add entries
+- **Dependency resolution** : missing `depends_on` packages are offered before installation, `conflicts_with` blocks incompatible combinations, circular dependencies are detected
+- **Compatibility checks** : packages are tagged `⚠ incompatible` when they do not support your current Laravel or PHP version (or hidden entirely via config), with an explicit confirmation before forcing the install
 
-- **Failure reporting** — a failing step stops the installation and reports the affected packages
-- **Install logging** — installations are recorded in a dedicated log channel for auditing what was run and when
+- **Failure reporting** : a failing step stops the installation and reports the affected packages
+- **Install logging** : installations are recorded in a dedicated log channel for auditing what was run and when
 
 ## Installation
 
@@ -37,9 +37,9 @@ php artisan x:install
 
 The main menu lets you:
 
-1. **Browse categories** — choose a category, select packages, then press `Enter` to add them to the cart
-2. **Finish and install** — resolve dependencies, confirm compatibility when needed, then execute the selected package steps
-3. **Quit** — leave the installer
+1. **Browse categories** : choose a category, select packages, then press `Enter` to add them to the cart
+2. **Finish and install** : resolve dependencies, confirm compatibility when needed, then execute the selected package steps
+3. **Quit** : leave the installer
 
 Press `Esc` to go back or exit. `Esc` cancels the current package selection; use `Enter` to save the checked packages first. The menu always displays the current number of selected packages.
 
@@ -89,9 +89,9 @@ conflicts_with: []                   # composer names that cannot coexist
 Validate your entry before submitting a PR:
 
 ```bash
-php artisan x:catalog:validate
+vendor/bin/testbench x:catalog:validate
 # or validate a specific directory
-php artisan x:catalog:validate resources/catalog
+vendor/bin/testbench x:catalog:validate resources/catalog
 ```
 
 Invalid or malformed files are skipped with a warning at load time, so one broken entry never breaks the whole catalog — but they will be reported by the validator.
