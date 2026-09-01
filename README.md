@@ -1,8 +1,8 @@
 # xn-orchestrator
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/cocouvi/xn-orchestrator.svg?style=for-the-badge)](https://packagist.org/packages/cocouvi/xn-orchestrator)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/status/cocouvi/xn-orchestrator?style=for-the-badge)](https://github.com/cocouvi/xn-orchestrator/actions)
-[![Total Downloads](https://img.shields.io/packagist/dt/cocouvi/xn-orchestrator.svg?style=for-the-badge)](https://packagist.org/packages/cocouvi/xn-orchestrator)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/cocouvi/xn-orchestrator.svg?style=flat-square)](https://packagist.org/packages/cocouvi/xn-orchestrator)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/status/cocouvi/xn-orchestrator?style=flat-square)](https://github.com/cocouvi/xn-orchestrator/actions)
+[![Total Downloads](https://img.shields.io/packagist/dt/cocouvi/xn-orchestrator.svg?style=flat-square)](https://packagist.org/packages/cocouvi/xn-orchestrator)
 
 Install and configure Laravel packages from a catalog directly from the CLI.
 
