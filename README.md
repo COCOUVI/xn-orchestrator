@@ -112,6 +112,13 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 - [COCOUVI](https://github.com/COCOUVI)
 - [All Contributors](../../contributors)
 
+## Windows
+
+Windows users can run `xn-orchestrator`, but for the best experience, **WSL (Windows Subsystem for Linux)** is recommended.
+
+The interactive CLI relies on terminal features that work more reliably in a POSIX environment such as WSL.
+
+
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
