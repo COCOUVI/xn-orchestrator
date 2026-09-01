@@ -62,6 +62,7 @@ The bundled catalog ships 24 essential packages across 15 categories:
 | Frontend | livewire/livewire |
 | Media | spatie/laravel-medialibrary |
 | Queues | laravel/horizon |
+| Scheduling   |laravel-zap |
 | Real-Time | laravel/reverb |
 | Scaffolding | devalade/crudify |
 | Search | laravel/scout |
