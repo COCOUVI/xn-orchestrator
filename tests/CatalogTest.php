@@ -12,7 +12,7 @@ it('binds the catalog repository to the yaml implementation', function () {
 it('returns at least six packages from the catalog', function () {
     $packages = app(CatalogRepositoryInterface::class)->getAll();
 
-    expect($packages)->toHaveCount(24);
+    expect($packages)->toHaveCount(25);
 
     foreach ($packages as $package) {
         expect($package)->toBeInstanceOf(PackageDefinition::class);
